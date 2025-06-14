@@ -1,7 +1,8 @@
 
 import React from 'react';
-import { Settings, FolderOpen, CheckSquare, Gift } from 'lucide-react';
+import { Settings, FolderOpen, CheckSquare, Gift, MapPin, Users, Wallet, Menu } from 'lucide-react';
 import { Button } from '@/components/ui/button';
+import { useNavigate, useLocation } from 'react-router-dom';
 import {
   NavigationMenu,
   NavigationMenuContent,
@@ -12,12 +13,21 @@ import {
 } from '@/components/ui/navigation-menu';
 
 export const DashboardHeader = () => {
+  const navigate = useNavigate();
+  const location = useLocation();
+
   const navigationItems = [
-    { name: 'Projekte', href: '#', icon: FolderOpen, active: true },
-    { name: 'Aufgaben', href: '#', icon: CheckSquare, active: false },
-    { name: 'Belohnungen', href: '#', icon: Gift, active: false },
-    { name: 'Einstellungen', href: '#', icon: Settings, active: false },
+    { name: 'Dashboard', href: '/dashboard', icon: FolderOpen, active: location.pathname === '/dashboard' },
+    { name: 'Karte', href: '/map', icon: MapPin, active: location.pathname === '/map' },
+    { name: 'Jobs', href: '/jobs', icon: CheckSquare, active: location.pathname === '/jobs' },
+    { name: 'Profil', href: '/profile', icon: Users, active: location.pathname === '/profile' },
+    { name: 'Einladen', href: '/invite', icon: Gift, active: location.pathname === '/invite' },
+    { name: 'Wallet', href: '/wallet', icon: Wallet, active: location.pathname === '/wallet' },
   ];
+
+  const handleNavigation = (href: string) => {
+    navigate(href);
+  };
 
   return (
     <header className="bg-gray-900 border-b border-gray-800 sticky top-0 z-50">
@@ -25,7 +35,7 @@ export const DashboardHeader = () => {
         <div className="flex items-center justify-between h-16">
           {/* Logo */}
           <div className="flex items-center">
-            <div className="mr-3">
+            <div className="mr-3 cursor-pointer" onClick={() => navigate('/dashboard')}>
               <img 
                 src="/lovable-uploads/297ee6c8-01e0-4f29-ab9c-61eef3186daf.png" 
                 alt="Mutuus" 
@@ -45,6 +55,7 @@ export const DashboardHeader = () => {
                     ? "bg-blue-600 text-white hover:bg-blue-700" 
                     : "text-gray-300 hover:text-white hover:bg-gray-800"
                 }`}
+                onClick={() => handleNavigation(item.href)}
               >
                 <item.icon className="w-4 h-4 mr-2" />
                 {item.name}
@@ -58,6 +69,7 @@ export const DashboardHeader = () => {
               <NavigationMenuList>
                 <NavigationMenuItem>
                   <NavigationMenuTrigger className="bg-gray-800 text-gray-300">
+                    <Menu className="w-4 h-4 mr-2" />
                     Menü
                   </NavigationMenuTrigger>
                   <NavigationMenuContent className="w-48 bg-gray-800 border-gray-700">
@@ -65,11 +77,12 @@ export const DashboardHeader = () => {
                       {navigationItems.map((item) => (
                         <NavigationMenuLink
                           key={item.name}
-                          className={`flex items-center px-3 py-2 rounded-md text-sm font-medium ${
+                          className={`flex items-center px-3 py-2 rounded-md text-sm font-medium cursor-pointer ${
                             item.active
                               ? "bg-blue-600 text-white"
                               : "text-gray-300 hover:text-white hover:bg-gray-700"
                           }`}
+                          onClick={() => handleNavigation(item.href)}
                         >
                           <item.icon className="w-4 h-4 mr-2" />
                           {item.name}
