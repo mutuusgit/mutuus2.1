@@ -8,6 +8,21 @@ import { Badge } from '@/components/ui/badge';
 import { DashboardHeader } from '@/components/DashboardHeader';
 import { useNavigate, useParams } from 'react-router-dom';
 
+interface LessonStep {
+  title: string;
+  content: string;
+  tips: string[];
+  image?: string;
+}
+
+interface LessonData {
+  title: string;
+  description: string;
+  duration: string;
+  xp: number;
+  steps: LessonStep[];
+}
+
 const TutorialLesson = () => {
   const navigate = useNavigate();
   const { categoryId, lessonId } = useParams();
@@ -16,7 +31,7 @@ const TutorialLesson = () => {
   const [timeSpent, setTimeSpent] = useState(0);
 
   // Mock lesson data - in a real app this would come from an API
-  const lessonData = {
+  const lessonData: Record<string, LessonData> = {
     'dashboard-basics': {
       title: 'Dashboard Overview',
       description: 'Lernen Sie die Grundfunktionen des Dashboards kennen',
@@ -99,7 +114,7 @@ const TutorialLesson = () => {
     }
   };
 
-  const currentLesson = lessonData[lessonId as keyof typeof lessonData];
+  const currentLesson = lessonData[lessonId as string];
   
   useEffect(() => {
     const timer = setInterval(() => {
@@ -114,9 +129,9 @@ const TutorialLesson = () => {
       <div className="min-h-screen bg-gray-900">
         <DashboardHeader />
         <div className="container mx-auto px-4 py-6">
-          <div className="text-center">
-            <h1 className="text-2xl font-bold text-white mb-4">Lektion nicht gefunden</h1>
-            <Button onClick={() => navigate('/tutorial')} className="bg-blue-600 hover:bg-blue-700">
+          <div className="text-center scroll-fade-in">
+            <h1 className="text-2xl font-bold text-white mb-4 text-glow">Lektion nicht gefunden</h1>
+            <Button onClick={() => navigate('/tutorial')} className="btn-futuristic glow-blue hover-lift">
               Zurück zum Campus
             </Button>
           </div>
@@ -159,11 +174,11 @@ const TutorialLesson = () => {
       
       <main className="container mx-auto px-4 py-6">
         {/* Header */}
-        <div className="flex items-center justify-between mb-6">
+        <div className="flex items-center justify-between mb-6 scroll-slide-left">
           <Button 
             variant="ghost" 
             onClick={() => navigate('/tutorial')}
-            className="text-gray-400 hover:text-white"
+            className="text-gray-400 hover:text-white btn-futuristic hover-lift"
           >
             <ArrowLeft className="w-4 h-4 mr-2" />
             Zurück zum Campus
@@ -174,18 +189,18 @@ const TutorialLesson = () => {
               <Clock className="w-4 h-4 mr-2" />
               <span>{formatTime(timeSpent)}</span>
             </div>
-            <Badge className="bg-blue-600">
+            <Badge className="bg-blue-600 glow-blue">
               {currentLesson.duration}
             </Badge>
           </div>
         </div>
 
         {/* Progress */}
-        <Card className="bg-gray-800 border-gray-700 mb-6">
+        <Card className="bg-gray-800 border-gray-700 mb-6 card-futuristic hover-lift glow-blue scroll-fade-in delay-100">
           <CardContent className="pt-6">
             <div className="flex items-center justify-between mb-4">
-              <h1 className="text-2xl font-bold text-white">{currentLesson.title}</h1>
-              <div className="flex items-center text-yellow-400">
+              <h1 className="text-2xl font-bold text-white text-glow">{currentLesson.title}</h1>
+              <div className="flex items-center text-yellow-400 floating">
                 <Star className="w-5 h-5 mr-1" />
                 <span className="font-medium">{currentLesson.xp} XP</span>
               </div>
@@ -195,7 +210,7 @@ const TutorialLesson = () => {
                 <span className="text-gray-400">Fortschritt</span>
                 <span className="text-white">{currentStep + 1}/{currentLesson.steps.length}</span>
               </div>
-              <Progress value={progressPercentage} className="h-2" />
+              <Progress value={progressPercentage} className="h-2 glow-blue" />
             </div>
           </CardContent>
         </Card>
@@ -205,16 +220,16 @@ const TutorialLesson = () => {
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
             {/* Main Content */}
             <div className="lg:col-span-2">
-              <Card className="bg-gray-800 border-gray-700">
+              <Card className="bg-gray-800 border-gray-700 card-futuristic hover-lift glow-blue scroll-scale-in delay-200">
                 <CardHeader>
-                  <CardTitle className="text-white flex items-center">
+                  <CardTitle className="text-white flex items-center hover-glow">
                     <Book className="w-5 h-5 mr-2 text-blue-400" />
                     {currentStepData.title}
                   </CardTitle>
                 </CardHeader>
                 <CardContent className="space-y-6">
                   {currentStepData.image && (
-                    <div className="aspect-video bg-gray-700 rounded-lg flex items-center justify-center">
+                    <div className="aspect-video bg-gray-700 rounded-lg flex items-center justify-center hover-lift glow-blue">
                       <img 
                         src={currentStepData.image} 
                         alt={currentStepData.title}
@@ -232,7 +247,7 @@ const TutorialLesson = () => {
                       variant="outline" 
                       onClick={handlePrevious}
                       disabled={currentStep === 0}
-                      className="bg-gray-700 border-gray-600 text-white hover:bg-gray-600"
+                      className="btn-futuristic hover-lift"
                     >
                       <ArrowLeft className="w-4 h-4 mr-2" />
                       Zurück
@@ -240,7 +255,7 @@ const TutorialLesson = () => {
                     
                     <Button 
                       onClick={handleNext}
-                      className="bg-blue-600 hover:bg-blue-700"
+                      className="btn-futuristic glow-blue hover-lift"
                     >
                       {currentStep === currentLesson.steps.length - 1 ? (
                         <>
@@ -262,9 +277,9 @@ const TutorialLesson = () => {
             {/* Sidebar */}
             <div className="space-y-6">
               {/* Key Points */}
-              <Card className="bg-gray-800 border-gray-700">
+              <Card className="bg-gray-800 border-gray-700 card-futuristic hover-lift glow-green scroll-slide-right delay-300">
                 <CardHeader>
-                  <CardTitle className="text-white flex items-center">
+                  <CardTitle className="text-white flex items-center hover-glow">
                     <Target className="w-5 h-5 mr-2 text-green-400" />
                     Wichtige Punkte
                   </CardTitle>
@@ -272,7 +287,7 @@ const TutorialLesson = () => {
                 <CardContent>
                   <ul className="space-y-3">
                     {currentStepData.tips.map((tip, index) => (
-                      <li key={index} className="flex items-start">
+                      <li key={index} className={`flex items-start scroll-fade-in delay-${(index + 1) * 100}`}>
                         <CheckCircle className="w-4 h-4 text-green-400 mt-0.5 mr-3 flex-shrink-0" />
                         <span className="text-gray-300 text-sm">{tip}</span>
                       </li>
@@ -282,7 +297,7 @@ const TutorialLesson = () => {
               </Card>
 
               {/* Lesson Navigation */}
-              <Card className="bg-gray-800 border-gray-700">
+              <Card className="bg-gray-800 border-gray-700 card-futuristic hover-lift glow-purple scroll-slide-right delay-400">
                 <CardHeader>
                   <CardTitle className="text-white text-sm">Lektionsübersicht</CardTitle>
                 </CardHeader>
@@ -291,11 +306,11 @@ const TutorialLesson = () => {
                     {currentLesson.steps.map((step, index) => (
                       <div
                         key={index}
-                        className={`p-3 rounded-md cursor-pointer transition-colors ${
+                        className={`p-3 rounded-md cursor-pointer transition-all hover-lift ${
                           index === currentStep
-                            ? 'bg-blue-600 text-white'
+                            ? 'bg-blue-600 text-white glow-blue'
                             : index < currentStep
-                            ? 'bg-green-600 text-white'
+                            ? 'bg-green-600 text-white glow-green'
                             : 'bg-gray-700 text-gray-300 hover:bg-gray-600'
                         }`}
                         onClick={() => setCurrentStep(index)}
@@ -318,25 +333,25 @@ const TutorialLesson = () => {
           </div>
         ) : (
           /* Completion Screen */
-          <Card className="bg-gray-800 border-gray-700">
+          <Card className="bg-gray-800 border-gray-700 card-futuristic glow-green scroll-scale-in">
             <CardContent className="pt-6">
               <div className="text-center space-y-6">
-                <div className="w-16 h-16 bg-green-600 rounded-full flex items-center justify-center mx-auto">
+                <div className="w-16 h-16 bg-green-600 rounded-full flex items-center justify-center mx-auto floating glow-green">
                   <CheckCircle className="w-8 h-8 text-white" />
                 </div>
                 
                 <div>
-                  <h2 className="text-2xl font-bold text-white mb-2">Glückwunsch!</h2>
+                  <h2 className="text-2xl font-bold text-white mb-2 text-glow-green">Glückwunsch!</h2>
                   <p className="text-gray-400">Sie haben die Lektion "{currentLesson.title}" erfolgreich abgeschlossen</p>
                 </div>
                 
                 <div className="flex items-center justify-center space-x-8">
                   <div className="text-center">
-                    <div className="text-2xl font-bold text-yellow-400">{currentLesson.xp}</div>
+                    <div className="text-2xl font-bold text-yellow-400 floating">{currentLesson.xp}</div>
                     <div className="text-sm text-gray-400">XP Erhalten</div>
                   </div>
                   <div className="text-center">
-                    <div className="text-2xl font-bold text-blue-400">{formatTime(timeSpent)}</div>
+                    <div className="text-2xl font-bold text-blue-400 floating">{formatTime(timeSpent)}</div>
                     <div className="text-sm text-gray-400">Zeit investiert</div>
                   </div>
                 </div>
@@ -345,13 +360,13 @@ const TutorialLesson = () => {
                   <Button 
                     variant="outline"
                     onClick={() => navigate('/tutorial')}
-                    className="bg-gray-700 border-gray-600 text-white hover:bg-gray-600"
+                    className="btn-futuristic hover-lift"
                   >
                     Zum Campus
                   </Button>
                   <Button 
                     onClick={handleComplete}
-                    className="bg-blue-600 hover:bg-blue-700"
+                    className="btn-futuristic glow-blue hover-lift"
                   >
                     Nächste Lektion
                   </Button>

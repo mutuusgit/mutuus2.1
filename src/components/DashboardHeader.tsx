@@ -33,12 +33,12 @@ export const DashboardHeader = () => {
   };
 
   return (
-    <header className="bg-gray-900 border-b border-gray-800 sticky top-0 z-50">
+    <header className="bg-gray-900 border-b border-gray-800 sticky top-0 z-50 backdrop-blur-sm bg-opacity-95">
       <div className="container mx-auto px-4">
         <div className="flex items-center justify-between h-16">
           {/* Logo */}
           <div className="flex items-center">
-            <div className="mr-3 cursor-pointer transition-transform duration-200 hover:scale-105" onClick={() => navigate('/dashboard')}>
+            <div className="mr-3 cursor-pointer hover-lift floating glow-blue" onClick={() => navigate('/dashboard')}>
               <img 
                 src="/lovable-uploads/297ee6c8-01e0-4f29-ab9c-61eef3186daf.png" 
                 alt="Mutuus" 
@@ -49,13 +49,13 @@ export const DashboardHeader = () => {
 
           {/* Navigation */}
           <nav className="hidden lg:flex items-center space-x-1">
-            {navigationItems.map((item) => (
+            {navigationItems.map((item, index) => (
               <Button
                 key={item.name}
                 variant={item.active ? "default" : "ghost"}
-                className={`flex items-center px-3 py-2 transition-all duration-200 hover:scale-105 ${
+                className={`flex items-center px-3 py-2 btn-futuristic hover-lift scroll-slide-right delay-${index * 50} ${
                   item.active 
-                    ? "bg-blue-600 text-white hover:bg-blue-700" 
+                    ? "bg-blue-600 text-white hover:bg-blue-700 glow-blue text-glow" 
                     : "text-gray-300 hover:text-white hover:bg-gray-800"
                 }`}
                 onClick={() => handleNavigation(item.href)}
@@ -71,18 +71,18 @@ export const DashboardHeader = () => {
             <NavigationMenu>
               <NavigationMenuList>
                 <NavigationMenuItem>
-                  <NavigationMenuTrigger className="bg-gray-800 text-gray-300 border-gray-700">
+                  <NavigationMenuTrigger className="bg-gray-800 text-gray-300 border-gray-700 btn-futuristic hover-lift">
                     <Menu className="w-4 h-4 mr-2" />
                     Menü
                   </NavigationMenuTrigger>
-                  <NavigationMenuContent className="w-56 bg-gray-800 border-gray-700">
+                  <NavigationMenuContent className="w-56 bg-gray-800 border-gray-700 glow-blue">
                     <div className="p-2">
-                      {navigationItems.map((item) => (
+                      {navigationItems.map((item, index) => (
                         <NavigationMenuLink
                           key={item.name}
-                          className={`flex items-center px-3 py-3 rounded-md text-sm font-medium cursor-pointer transition-all duration-200 ${
+                          className={`flex items-center px-3 py-3 rounded-md text-sm font-medium cursor-pointer btn-futuristic hover-lift scroll-fade-in delay-${index * 50} ${
                             item.active
-                              ? "bg-blue-600 text-white"
+                              ? "bg-blue-600 text-white glow-blue"
                               : "text-gray-300 hover:text-white hover:bg-gray-700"
                           }`}
                           onClick={() => handleNavigation(item.href)}
@@ -100,11 +100,11 @@ export const DashboardHeader = () => {
 
           {/* User Balance */}
           <div className="hidden sm:flex items-center space-x-3">
-            <div className="bg-green-600 text-white px-3 py-1 rounded-lg text-sm font-medium transition-all duration-200 hover:scale-105 cursor-pointer"
+            <div className="bg-green-600 text-white px-3 py-1 rounded-lg text-sm font-medium hover-lift glow-green pulse-glow cursor-pointer"
                  onClick={() => navigate('/wallet')}>
               5.00€
             </div>
-            <div className="bg-orange-600 text-white px-2 py-1 rounded text-sm transition-all duration-200 hover:scale-105 cursor-pointer"
+            <div className="bg-orange-600 text-white px-2 py-1 rounded text-sm hover-lift glow-orange floating cursor-pointer"
                  onClick={() => navigate('/ranking')}>
               🔥 120
             </div>

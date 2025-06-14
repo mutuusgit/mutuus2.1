@@ -33,7 +33,7 @@ const Dashboard = () => {
 
   const getStatusBadge = (status: string) => {
     const statusStyles = {
-      active: "bg-green-500 hover:bg-green-600 text-white",
+      active: "bg-green-500 hover:bg-green-600 text-white glow-green",
       archived: "bg-gray-600 hover:bg-gray-700 text-white"
     };
     
@@ -59,15 +59,15 @@ const Dashboard = () => {
       
       <main className="container mx-auto px-4 py-8">
         {/* Dashboard Title and Create Button */}
-        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-8">
+        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-8 scroll-fade-in">
           <div>
-            <h1 className="text-3xl font-bold text-white mb-2">Dashboard</h1>
+            <h1 className="text-3xl font-bold text-white mb-2 text-glow">Dashboard</h1>
             <p className="text-gray-400">Verwalten Sie Ihre Projekte und Aufgaben</p>
           </div>
           
           <Dialog open={isCreateModalOpen} onOpenChange={setIsCreateModalOpen}>
             <DialogTrigger asChild>
-              <Button className="mt-4 sm:mt-0 bg-blue-600 hover:bg-blue-700">
+              <Button className="mt-4 sm:mt-0 btn-futuristic glow-blue hover-lift">
                 <Plus className="w-4 h-4 mr-2" />
                 Neues Projekt
               </Button>
@@ -78,58 +78,58 @@ const Dashboard = () => {
 
         {/* Stats Cards */}
         <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-8">
-          <Card className="bg-gray-800 border-gray-700">
+          <Card className="bg-gray-800 border-gray-700 card-futuristic hover-lift glow-blue scroll-slide-left delay-100">
             <CardContent className="p-6">
               <div className="flex items-center justify-between">
                 <div>
                   <p className="text-sm font-medium text-gray-400">Aktive Projekte</p>
-                  <p className="text-3xl font-bold text-white">
+                  <p className="text-3xl font-bold text-white text-glow">
                     {projects.filter(p => p.status === 'active').length}
                   </p>
                 </div>
-                <div className="bg-blue-600 p-3 rounded-full">
+                <div className="bg-blue-600 p-3 rounded-full floating glow-blue">
                   <FolderOpen className="w-6 h-6 text-white" />
                 </div>
               </div>
             </CardContent>
           </Card>
 
-          <Card className="bg-gray-800 border-gray-700">
+          <Card className="bg-gray-800 border-gray-700 card-futuristic hover-lift glow-green scroll-slide-left delay-200">
             <CardContent className="p-6">
               <div className="flex items-center justify-between">
                 <div>
                   <p className="text-sm font-medium text-gray-400">Gesamt Projekte</p>
-                  <p className="text-3xl font-bold text-white">{projects.length}</p>
+                  <p className="text-3xl font-bold text-white text-glow-green">{projects.length}</p>
                 </div>
-                <div className="bg-green-600 p-3 rounded-full">
+                <div className="bg-green-600 p-3 rounded-full floating glow-green">
                   <Star className="w-6 h-6 text-white" />
                 </div>
               </div>
             </CardContent>
           </Card>
 
-          <Card className="bg-gray-800 border-gray-700">
+          <Card className="bg-gray-800 border-gray-700 card-futuristic hover-lift glow-orange scroll-slide-left delay-300">
             <CardContent className="p-6">
               <div className="flex items-center justify-between">
                 <div>
                   <p className="text-sm font-medium text-gray-400">Streak</p>
                   <p className="text-3xl font-bold text-white">7</p>
                 </div>
-                <div className="bg-orange-600 p-3 rounded-full">
+                <div className="bg-orange-600 p-3 rounded-full floating glow-orange pulse-glow">
                   <span className="text-white text-xl">🔥</span>
                 </div>
               </div>
             </CardContent>
           </Card>
 
-          <Card className="bg-gray-800 border-gray-700">
+          <Card className="bg-gray-800 border-gray-700 card-futuristic hover-lift glow-purple scroll-slide-left delay-400">
             <CardContent className="p-6">
               <div className="flex items-center justify-between">
                 <div>
                   <p className="text-sm font-medium text-gray-400">Verdienst</p>
-                  <p className="text-3xl font-bold text-white">5.00€</p>
+                  <p className="text-3xl font-bold text-white text-glow-purple">5.00€</p>
                 </div>
-                <div className="bg-purple-600 p-3 rounded-full">
+                <div className="bg-purple-600 p-3 rounded-full floating glow-purple">
                   <span className="text-white text-xl">💰</span>
                 </div>
               </div>
@@ -139,11 +139,11 @@ const Dashboard = () => {
 
         {/* Projects Grid */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {projects.map((project) => (
-            <Card key={project.id} className="bg-gray-800 border-gray-700 hover:shadow-lg hover:shadow-blue-500/10 transition-all duration-200">
+          {projects.map((project, index) => (
+            <Card key={project.id} className={`bg-gray-800 border-gray-700 card-futuristic hover-lift glow-blue scroll-scale-in delay-${(index + 1) * 100}`}>
               <CardHeader className="pb-3">
                 <div className="flex justify-between items-start">
-                  <CardTitle className="text-lg font-semibold text-white leading-tight">
+                  <CardTitle className="text-lg font-semibold text-white leading-tight hover-glow">
                     {project.name}
                   </CardTitle>
                   {getStatusBadge(project.status)}
@@ -162,7 +162,7 @@ const Dashboard = () => {
                   </div>
                 )}
                 <div className="pt-4 border-t border-gray-700">
-                  <Button variant="outline" size="sm" className="w-full bg-transparent border-gray-600 text-gray-300 hover:bg-gray-700 hover:text-white">
+                  <Button variant="outline" size="sm" className="w-full btn-futuristic hover-lift">
                     <FolderOpen className="w-4 h-4 mr-2" />
                     Projekt öffnen
                   </Button>
@@ -174,13 +174,13 @@ const Dashboard = () => {
 
         {/* Empty State */}
         {projects.length === 0 && (
-          <div className="text-center py-12">
-            <FolderOpen className="w-16 h-16 text-gray-600 mx-auto mb-4" />
+          <div className="text-center py-12 scroll-fade-in">
+            <FolderOpen className="w-16 h-16 text-gray-600 mx-auto mb-4 floating" />
             <h3 className="text-lg font-medium text-white mb-2">Keine Projekte gefunden</h3>
             <p className="text-gray-400 mb-6">Erstellen Sie Ihr erstes Projekt, um loszulegen</p>
             <Dialog open={isCreateModalOpen} onOpenChange={setIsCreateModalOpen}>
               <DialogTrigger asChild>
-                <Button className="bg-blue-600 hover:bg-blue-700">
+                <Button className="btn-futuristic glow-blue hover-lift">
                   <Plus className="w-4 h-4 mr-2" />
                   Erstes Projekt erstellen
                 </Button>
