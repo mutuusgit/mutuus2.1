@@ -1,6 +1,6 @@
 
 import React from 'react';
-import { Settings, FolderOpen, CheckSquare } from 'lucide-react';
+import { Settings, FolderOpen, CheckSquare, Gift } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import {
   NavigationMenu,
@@ -15,19 +15,23 @@ export const DashboardHeader = () => {
   const navigationItems = [
     { name: 'Projekte', href: '#', icon: FolderOpen, active: true },
     { name: 'Aufgaben', href: '#', icon: CheckSquare, active: false },
+    { name: 'Belohnungen', href: '#', icon: Gift, active: false },
     { name: 'Einstellungen', href: '#', icon: Settings, active: false },
   ];
 
   return (
-    <header className="bg-white border-b border-gray-200 sticky top-0 z-50">
+    <header className="bg-gray-900 border-b border-gray-800 sticky top-0 z-50">
       <div className="container mx-auto px-4">
         <div className="flex items-center justify-between h-16">
           {/* Logo */}
           <div className="flex items-center">
-            <div className="bg-blue-600 text-white p-2 rounded-lg mr-3">
-              <CheckSquare className="w-6 h-6" />
+            <div className="mr-3">
+              <img 
+                src="/lovable-uploads/297ee6c8-01e0-4f29-ab9c-61eef3186daf.png" 
+                alt="Mutuus" 
+                className="h-10 w-auto"
+              />
             </div>
-            <h2 className="text-xl font-bold text-gray-900">TaskManager</h2>
           </div>
 
           {/* Navigation */}
@@ -39,7 +43,7 @@ export const DashboardHeader = () => {
                 className={`flex items-center px-4 py-2 ${
                   item.active 
                     ? "bg-blue-600 text-white hover:bg-blue-700" 
-                    : "text-gray-600 hover:text-gray-900 hover:bg-gray-100"
+                    : "text-gray-300 hover:text-white hover:bg-gray-800"
                 }`}
               >
                 <item.icon className="w-4 h-4 mr-2" />
@@ -53,10 +57,10 @@ export const DashboardHeader = () => {
             <NavigationMenu>
               <NavigationMenuList>
                 <NavigationMenuItem>
-                  <NavigationMenuTrigger className="bg-gray-100">
+                  <NavigationMenuTrigger className="bg-gray-800 text-gray-300">
                     Menü
                   </NavigationMenuTrigger>
-                  <NavigationMenuContent className="w-48">
+                  <NavigationMenuContent className="w-48 bg-gray-800 border-gray-700">
                     <div className="p-2">
                       {navigationItems.map((item) => (
                         <NavigationMenuLink
@@ -64,7 +68,7 @@ export const DashboardHeader = () => {
                           className={`flex items-center px-3 py-2 rounded-md text-sm font-medium ${
                             item.active
                               ? "bg-blue-600 text-white"
-                              : "text-gray-600 hover:text-gray-900 hover:bg-gray-100"
+                              : "text-gray-300 hover:text-white hover:bg-gray-700"
                           }`}
                         >
                           <item.icon className="w-4 h-4 mr-2" />
@@ -76,6 +80,16 @@ export const DashboardHeader = () => {
                 </NavigationMenuItem>
               </NavigationMenuList>
             </NavigationMenu>
+          </div>
+
+          {/* User Balance */}
+          <div className="hidden sm:flex items-center space-x-3">
+            <div className="bg-green-600 text-white px-3 py-1 rounded-lg text-sm font-medium">
+              5.00€
+            </div>
+            <div className="bg-orange-600 text-white px-2 py-1 rounded text-sm">
+              🔥 0
+            </div>
           </div>
         </div>
       </div>

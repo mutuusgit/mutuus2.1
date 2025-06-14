@@ -57,15 +57,15 @@ export const CreateProjectModal = ({ onSubmit }: CreateProjectModalProps) => {
   };
 
   return (
-    <DialogContent className="sm:max-w-md">
+    <DialogContent className="sm:max-w-md bg-gray-800 border-gray-700">
       <DialogHeader>
-        <DialogTitle className="text-xl font-semibold">Neues Projekt erstellen</DialogTitle>
+        <DialogTitle className="text-xl font-semibold text-white">Neues Projekt erstellen</DialogTitle>
       </DialogHeader>
       
       <form onSubmit={handleSubmit} className="space-y-6">
         {/* Project Name */}
         <div className="space-y-2">
-          <Label htmlFor="project-name" className="text-sm font-medium">
+          <Label htmlFor="project-name" className="text-sm font-medium text-gray-300">
             Projektname *
           </Label>
           <Input
@@ -74,13 +74,13 @@ export const CreateProjectModal = ({ onSubmit }: CreateProjectModalProps) => {
             value={formData.name}
             onChange={(e) => handleInputChange('name', e.target.value)}
             required
-            className="w-full"
+            className="w-full bg-gray-700 border-gray-600 text-white placeholder:text-gray-400 focus:border-blue-500"
           />
         </div>
 
         {/* Description */}
         <div className="space-y-2">
-          <Label htmlFor="project-description" className="text-sm font-medium">
+          <Label htmlFor="project-description" className="text-sm font-medium text-gray-300">
             Beschreibung
           </Label>
           <Textarea
@@ -89,20 +89,20 @@ export const CreateProjectModal = ({ onSubmit }: CreateProjectModalProps) => {
             value={formData.description}
             onChange={(e) => handleInputChange('description', e.target.value)}
             rows={3}
-            className="w-full resize-none"
+            className="w-full resize-none bg-gray-700 border-gray-600 text-white placeholder:text-gray-400 focus:border-blue-500"
           />
         </div>
 
         {/* Due Date */}
         <div className="space-y-2">
-          <Label className="text-sm font-medium">Fälligkeitsdatum</Label>
+          <Label className="text-sm font-medium text-gray-300">Fälligkeitsdatum</Label>
           <Popover open={isCalendarOpen} onOpenChange={setIsCalendarOpen}>
             <PopoverTrigger asChild>
               <Button
                 variant="outline"
                 className={cn(
-                  "w-full justify-start text-left font-normal",
-                  !formData.due_date && "text-muted-foreground"
+                  "w-full justify-start text-left font-normal bg-gray-700 border-gray-600 hover:bg-gray-600",
+                  !formData.due_date ? "text-gray-400" : "text-white"
                 )}
               >
                 <CalendarIcon className="mr-2 h-4 w-4" />
@@ -113,7 +113,7 @@ export const CreateProjectModal = ({ onSubmit }: CreateProjectModalProps) => {
                 )}
               </Button>
             </PopoverTrigger>
-            <PopoverContent className="w-auto p-0" align="start">
+            <PopoverContent className="w-auto p-0 bg-gray-800 border-gray-700" align="start">
               <CalendarComponent
                 mode="single"
                 selected={formData.due_date || undefined}
@@ -134,7 +134,7 @@ export const CreateProjectModal = ({ onSubmit }: CreateProjectModalProps) => {
           <Button
             type="button"
             variant="outline"
-            className="flex-1"
+            className="flex-1 bg-transparent border-gray-600 text-gray-300 hover:bg-gray-700 hover:text-white"
             onClick={() => {
               setFormData({ name: '', description: '', due_date: null });
             }}

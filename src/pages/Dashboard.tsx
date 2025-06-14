@@ -1,13 +1,10 @@
 
 import React, { useState } from 'react';
-import { Plus, Calendar, Settings, FolderOpen } from 'lucide-react';
+import { Plus, Calendar, FolderOpen, Star } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
-import { Input } from '@/components/ui/input';
-import { Textarea } from '@/components/ui/textarea';
-import { Label } from '@/components/ui/label';
 import { CreateProjectModal } from '@/components/CreateProjectModal';
 import { DashboardHeader } from '@/components/DashboardHeader';
 
@@ -37,7 +34,7 @@ const Dashboard = () => {
   const getStatusBadge = (status: string) => {
     const statusStyles = {
       active: "bg-green-500 hover:bg-green-600 text-white",
-      archived: "bg-gray-500 hover:bg-gray-600 text-white"
+      archived: "bg-gray-600 hover:bg-gray-700 text-white"
     };
     
     return (
@@ -57,15 +54,15 @@ const Dashboard = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-gray-900">
       <DashboardHeader />
       
       <main className="container mx-auto px-4 py-8">
         {/* Dashboard Title and Create Button */}
         <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-8">
           <div>
-            <h1 className="text-3xl font-bold text-gray-900 mb-2">Dashboard</h1>
-            <p className="text-gray-600">Verwalten Sie Ihre Projekte und Aufgaben</p>
+            <h1 className="text-3xl font-bold text-white mb-2">Dashboard</h1>
+            <p className="text-gray-400">Verwalten Sie Ihre Projekte und Aufgaben</p>
           </div>
           
           <Dialog open={isCreateModalOpen} onOpenChange={setIsCreateModalOpen}>
@@ -79,13 +76,74 @@ const Dashboard = () => {
           </Dialog>
         </div>
 
+        {/* Stats Cards */}
+        <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-8">
+          <Card className="bg-gray-800 border-gray-700">
+            <CardContent className="p-6">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-sm font-medium text-gray-400">Aktive Projekte</p>
+                  <p className="text-3xl font-bold text-white">
+                    {projects.filter(p => p.status === 'active').length}
+                  </p>
+                </div>
+                <div className="bg-blue-600 p-3 rounded-full">
+                  <FolderOpen className="w-6 h-6 text-white" />
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+
+          <Card className="bg-gray-800 border-gray-700">
+            <CardContent className="p-6">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-sm font-medium text-gray-400">Gesamt Projekte</p>
+                  <p className="text-3xl font-bold text-white">{projects.length}</p>
+                </div>
+                <div className="bg-green-600 p-3 rounded-full">
+                  <Star className="w-6 h-6 text-white" />
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+
+          <Card className="bg-gray-800 border-gray-700">
+            <CardContent className="p-6">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-sm font-medium text-gray-400">Streak</p>
+                  <p className="text-3xl font-bold text-white">7</p>
+                </div>
+                <div className="bg-orange-600 p-3 rounded-full">
+                  <span className="text-white text-xl">🔥</span>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+
+          <Card className="bg-gray-800 border-gray-700">
+            <CardContent className="p-6">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-sm font-medium text-gray-400">Verdienst</p>
+                  <p className="text-3xl font-bold text-white">5.00€</p>
+                </div>
+                <div className="bg-purple-600 p-3 rounded-full">
+                  <span className="text-white text-xl">💰</span>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+        </div>
+
         {/* Projects Grid */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           {projects.map((project) => (
-            <Card key={project.id} className="hover:shadow-lg transition-shadow duration-200 border-0 shadow-md">
+            <Card key={project.id} className="bg-gray-800 border-gray-700 hover:shadow-lg hover:shadow-blue-500/10 transition-all duration-200">
               <CardHeader className="pb-3">
                 <div className="flex justify-between items-start">
-                  <CardTitle className="text-lg font-semibold text-gray-900 leading-tight">
+                  <CardTitle className="text-lg font-semibold text-white leading-tight">
                     {project.name}
                   </CardTitle>
                   {getStatusBadge(project.status)}
@@ -93,18 +151,18 @@ const Dashboard = () => {
               </CardHeader>
               <CardContent>
                 {project.description && (
-                  <p className="text-gray-600 text-sm mb-4 line-clamp-2">
+                  <p className="text-gray-400 text-sm mb-4 line-clamp-2">
                     {project.description}
                   </p>
                 )}
                 {project.due_date && (
-                  <div className="flex items-center text-sm text-gray-500">
+                  <div className="flex items-center text-sm text-gray-500 mb-4">
                     <Calendar className="w-4 h-4 mr-1" />
                     Fällig: {formatDate(project.due_date)}
                   </div>
                 )}
-                <div className="mt-4 pt-4 border-t border-gray-100">
-                  <Button variant="outline" size="sm" className="w-full">
+                <div className="pt-4 border-t border-gray-700">
+                  <Button variant="outline" size="sm" className="w-full bg-transparent border-gray-600 text-gray-300 hover:bg-gray-700 hover:text-white">
                     <FolderOpen className="w-4 h-4 mr-2" />
                     Projekt öffnen
                   </Button>
@@ -117,12 +175,12 @@ const Dashboard = () => {
         {/* Empty State */}
         {projects.length === 0 && (
           <div className="text-center py-12">
-            <FolderOpen className="w-16 h-16 text-gray-300 mx-auto mb-4" />
-            <h3 className="text-lg font-medium text-gray-900 mb-2">Keine Projekte gefunden</h3>
-            <p className="text-gray-600 mb-6">Erstellen Sie Ihr erstes Projekt, um loszulegen</p>
+            <FolderOpen className="w-16 h-16 text-gray-600 mx-auto mb-4" />
+            <h3 className="text-lg font-medium text-white mb-2">Keine Projekte gefunden</h3>
+            <p className="text-gray-400 mb-6">Erstellen Sie Ihr erstes Projekt, um loszulegen</p>
             <Dialog open={isCreateModalOpen} onOpenChange={setIsCreateModalOpen}>
               <DialogTrigger asChild>
-                <Button>
+                <Button className="bg-blue-600 hover:bg-blue-700">
                   <Plus className="w-4 h-4 mr-2" />
                   Erstes Projekt erstellen
                 </Button>
