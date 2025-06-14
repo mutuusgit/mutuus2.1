@@ -1,6 +1,6 @@
 
 import React from 'react';
-import { Settings, FolderOpen, CheckSquare, Gift, MapPin, Users, WalletIcon, Menu, Trophy, Briefcase } from 'lucide-react';
+import { Settings, FolderOpen, CheckSquare, Gift, MapPin, Users, WalletIcon, Menu, Trophy, Briefcase, BookOpen } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useNavigate, useLocation } from 'react-router-dom';
 import {
@@ -21,6 +21,7 @@ export const DashboardHeader = () => {
     { name: 'Karte', href: '/map', icon: MapPin, active: location.pathname === '/map' },
     { name: 'Jobs', href: '/jobs', icon: CheckSquare, active: location.pathname === '/jobs' },
     { name: 'Meine Jobs', href: '/my-jobs', icon: Briefcase, active: location.pathname === '/my-jobs' },
+    { name: 'Campus', href: '/tutorial', icon: BookOpen, active: location.pathname.startsWith('/tutorial') },
     { name: 'Ranking', href: '/ranking', icon: Trophy, active: location.pathname === '/ranking' },
     { name: 'Profil', href: '/profile', icon: Users, active: location.pathname === '/profile' },
     { name: 'Einladen', href: '/invite', icon: Gift, active: location.pathname === '/invite' },

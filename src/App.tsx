@@ -15,6 +15,8 @@ import Invite from "./pages/Invite";
 import Wallet from "./pages/Wallet";
 import MyJobs from "./pages/MyJobs";
 import Ranking from "./pages/Ranking";
+import Tutorial from "./pages/Tutorial";
+import TutorialLesson from "./pages/TutorialLesson";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -36,6 +38,8 @@ const App = () => (
             <Route path="/wallet" element={<Wallet />} />
             <Route path="/my-jobs" element={<MyJobs />} />
             <Route path="/ranking" element={<Ranking />} />
+            <Route path="/tutorial" element={<Tutorial />} />
+            <Route path="/tutorial/:categoryId/:lessonId" element={<TutorialLesson />} />
             {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
             <Route path="*" element={<NotFound />} />
           </Routes>

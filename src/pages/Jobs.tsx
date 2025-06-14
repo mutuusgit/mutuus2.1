@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Plus, Filter, Search, MapPin, Clock, Euro, Heart, Zap } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -8,11 +7,13 @@ import { Badge } from '@/components/ui/badge';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { DashboardHeader } from '@/components/DashboardHeader';
 import { CreateJobModal } from '@/components/CreateJobModal';
+import { TutorialHint } from '@/components/TutorialHint';
 
 const Jobs = () => {
   const [viewMode, setViewMode] = useState<'find' | 'create'>('find');
   const [jobType, setJobType] = useState<'all' | 'good_deeds' | 'kein_bock'>('all');
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
+  const [showTutorialHint, setShowTutorialHint] = useState(true);
 
   // Mock jobs data
   const jobs = [
@@ -97,6 +98,21 @@ const Jobs = () => {
       <DashboardHeader />
       
       <main className="container mx-auto px-4 py-6">
+        {/* Tutorial Hint */}
+        {showTutorialHint && (
+          <TutorialHint
+            title="Neu bei der Jobsuche?"
+            description="Lernen Sie, wie Sie die besten Jobs finden und erfolgreich abschließen."
+            tutorialLink="/tutorial/job-system/finding-jobs"
+            tips={[
+              "Nutzen Sie Filter für bessere Ergebnisse",
+              "Lesen Sie Bewertungen der Auftraggeber",
+              "Starten Sie mit Jobs in Ihrer Nähe"
+            ]}
+            onDismiss={() => setShowTutorialHint(false)}
+          />
+        )}
+
         {/* Header with Mode Toggle */}
         <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-6">
           <div>
