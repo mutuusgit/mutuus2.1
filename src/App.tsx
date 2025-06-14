@@ -12,6 +12,9 @@ import Map from "./pages/Map";
 import Jobs from "./pages/Jobs";
 import Profile from "./pages/Profile";
 import Invite from "./pages/Invite";
+import Wallet from "./pages/Wallet";
+import MyJobs from "./pages/MyJobs";
+import Ranking from "./pages/Ranking";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -30,6 +33,9 @@ const App = () => (
             <Route path="/jobs" element={<Jobs />} />
             <Route path="/profile" element={<Profile />} />
             <Route path="/invite" element={<Invite />} />
+            <Route path="/wallet" element={<Wallet />} />
+            <Route path="/my-jobs" element={<MyJobs />} />
+            <Route path="/ranking" element={<Ranking />} />
             {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
             <Route path="*" element={<NotFound />} />
           </Routes>
