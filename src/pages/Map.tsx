@@ -1,252 +1,307 @@
 
-import React, { useState } from 'react';
-import { MapPin, Filter, Search, Heart, Euro, Zap } from 'lucide-react';
+import React, { useState, useEffect } from 'react';
+import { MapPin, Filter, List, Map as MapIcon, Search, Plus } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
+import { Input } from '@/components/ui/input';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { DashboardHeader } from '@/components/DashboardHeader';
+import { CreateJobModal } from '@/components/CreateJobModal';
+import { useQuery } from '@tanstack/react-query';
+import { supabase } from '@/integrations/supabase/client';
+
+// Mock data for jobs
+const mockJobs = [
+  {
+    id: '1',
+    title: 'Einkaufen für Nachbarin',
+    description: 'Wöchentlicher Einkauf für ältere Dame',
+    category: 'Einkaufen',
+    job_type: 'good_deeds',
+    karma_reward: 50,
+    location: 'Düsseldorf Altstadt',
+    latitude: 51.2277,
+    longitude: 6.7735,
+    status: 'open',
+    creator: { first_name: 'Maria', last_name: 'Schmidt' },
+    distance: '0.8 km',
+    estimated_duration: 60
+  },
+  {
+    id: '2',
+    title: 'Möbel aufbauen',
+    description: 'IKEA Schrank aufbauen',
+    category: 'Haushalt',
+    job_type: 'kein_bock',
+    budget: 45,
+    location: 'Düsseldorf Pempelfort',
+    latitude: 51.2500,
+    longitude: 6.7900,
+    status: 'open',
+    creator: { first_name: 'Thomas', last_name: 'Weber' },
+    distance: '1.2 km',
+    estimated_duration: 120
+  },
+  {
+    id: '3',
+    title: 'Gartenarbeit',
+    description: 'Hecke schneiden und Laub harken',
+    category: 'Garten',
+    job_type: 'kein_bock',
+    budget: 60,
+    location: 'Düsseldorf Oberkassel',
+    latitude: 51.2400,
+    longitude: 6.7600,
+    status: 'open',
+    creator: { first_name: 'Andrea', last_name: 'Müller' },
+    distance: '2.1 km',
+    estimated_duration: 180
+  },
+  {
+    id: '4',
+    title: 'Hund Gassi führen',
+    description: 'Täglicher Spaziergang mit Golden Retriever',
+    category: 'Tiere',
+    job_type: 'good_deeds',
+    karma_reward: 30,
+    location: 'Düsseldorf Bilk',
+    latitude: 51.2100,
+    longitude: 6.7800,
+    status: 'open',
+    creator: { first_name: 'Klaus', last_name: 'Fischer' },
+    distance: '1.5 km',
+    estimated_duration: 45
+  }
+];
 
 const Map = () => {
+  const [viewMode, setViewMode] = useState<'map' | 'list'>('map');
+  const [searchQuery, setSearchQuery] = useState('');
+  const [selectedCategory, setSelectedCategory] = useState<string>('all');
+  const [selectedJobType, setSelectedJobType] = useState<string>('all');
+  const [maxDistance, setMaxDistance] = useState<string>('10');
+  const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
   const [selectedJob, setSelectedJob] = useState<any>(null);
-  const [filters, setFilters] = useState({
-    radius: 10,
-    category: 'all',
-    jobType: 'all'
+
+  // Filter jobs based on search and filters
+  const filteredJobs = mockJobs.filter(job => {
+    const matchesSearch = job.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
+                         job.description.toLowerCase().includes(searchQuery.toLowerCase());
+    const matchesCategory = selectedCategory === 'all' || job.category === selectedCategory;
+    const matchesJobType = selectedJobType === 'all' || job.job_type === selectedJobType;
+    const matchesDistance = parseFloat(job.distance) <= parseFloat(maxDistance);
+    
+    return matchesSearch && matchesCategory && matchesJobType && matchesDistance;
   });
 
-  // Mock data for jobs on map
-  const mapJobs = [
-    {
-      id: 1,
-      title: "Einkaufen für Senioren",
-      type: "good_deeds",
-      karma: 50,
-      location: "Neuss Zentrum",
-      distance: "2.3 km",
-      category: "Einkaufen",
-      description: "Wöchentlicher Einkauf für ältere Nachbarin",
-      creator: "Maria S.",
-      position: { lat: 51.1979, lng: 6.6847 }
-    },
-    {
-      id: 2,
-      title: "Garten umgraben",
-      type: "kein_bock",
-      budget: 45,
-      location: "Düsseldorf-Bilk",
-      distance: "5.1 km",
-      category: "Garten",
-      description: "Kleinen Garten für Frühjahr vorbereiten",
-      creator: "Thomas M.",
-      position: { lat: 51.2099, lng: 6.7947 }
-    },
-    {
-      id: 3,
-      title: "Umzugshilfe",
-      type: "kein_bock",
-      budget: 80,
-      location: "Köln-Ehrenfeld",
-      distance: "8.7 km",
-      category: "Transport",
-      description: "Hilfe beim Transport von Möbeln",
-      creator: "Lisa K.",
-      position: { lat: 50.9475, lng: 6.9583 }
-    }
-  ];
+  const handleCreateJob = (jobData: any) => {
+    console.log('Creating job:', jobData);
+    setIsCreateModalOpen(false);
+  };
 
-  const categories = [
-    { value: 'all', label: 'Alle Kategorien' },
-    { value: 'haushalt', label: 'Haushalt' },
-    { value: 'garten', label: 'Garten' },
-    { value: 'einkaufen', label: 'Einkaufen' },
-    { value: 'transport', label: 'Transport' },
-    { value: 'technik', label: 'Technik' }
-  ];
+  const handleApplyForJob = (jobId: string) => {
+    console.log('Applying for job:', jobId);
+    // Here you would implement the application logic
+  };
+
+  const getJobTypeColor = (jobType: string) => {
+    return jobType === 'good_deeds' ? 'bg-green-500' : 'bg-blue-500';
+  };
+
+  const getJobTypeLabel = (jobType: string) => {
+    return jobType === 'good_deeds' ? 'Good Deed' : 'KeinBock';
+  };
 
   return (
     <div className="min-h-screen bg-gray-900">
       <DashboardHeader />
       
       <main className="container mx-auto px-4 py-6">
-        {/* Search and Filter Bar */}
-        <div className="mb-6 space-y-4">
-          <div className="flex flex-col sm:flex-row gap-4">
-            <div className="flex-1 relative">
-              <Search className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
-              <Input
-                placeholder="Jobs in der Nähe suchen..."
-                className="pl-10 bg-gray-800 border-gray-700 text-white placeholder:text-gray-400"
-              />
-            </div>
-            <Button variant="outline" className="bg-gray-800 border-gray-700 text-white hover:bg-gray-700">
-              <Filter className="w-4 h-4 mr-2" />
-              Filter
-            </Button>
+        {/* Header Section */}
+        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-6">
+          <div>
+            <h1 className="text-3xl font-bold text-white mb-2">Jobs in deiner Nähe</h1>
+            <p className="text-gray-400">Finde spannende Aufgaben oder biete deine Hilfe an</p>
           </div>
+          
+          <Dialog open={isCreateModalOpen} onOpenChange={setIsCreateModalOpen}>
+            <DialogTrigger asChild>
+              <Button className="mt-4 sm:mt-0 bg-blue-600 hover:bg-blue-700">
+                <Plus className="w-4 h-4 mr-2" />
+                Job erstellen
+              </Button>
+            </DialogTrigger>
+            <CreateJobModal onSubmit={handleCreateJob} />
+          </Dialog>
+        </div>
 
-          {/* Quick Filters */}
-          <div className="flex flex-wrap gap-2">
-            <Button
-              variant={filters.jobType === 'all' ? 'default' : 'outline'}
-              size="sm"
-              onClick={() => setFilters(prev => ({ ...prev, jobType: 'all' }))}
-              className="bg-gray-800 border-gray-700"
-            >
-              Alle
-            </Button>
-            <Button
-              variant={filters.jobType === 'good_deeds' ? 'default' : 'outline'}
-              size="sm"
-              onClick={() => setFilters(prev => ({ ...prev, jobType: 'good_deeds' }))}
-              className="bg-green-600 hover:bg-green-700 border-green-600"
-            >
-              <Heart className="w-3 h-3 mr-1" />
-              Good Deeds
-            </Button>
-            <Button
-              variant={filters.jobType === 'kein_bock' ? 'default' : 'outline'}
-              size="sm"
-              onClick={() => setFilters(prev => ({ ...prev, jobType: 'kein_bock' }))}
-              className="bg-blue-600 hover:bg-blue-700 border-blue-600"
-            >
-              <Euro className="w-3 h-3 mr-1" />
-              KeinBock
-            </Button>
+        {/* Search and Filters */}
+        <div className="bg-gray-800 rounded-lg p-4 mb-6">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4">
+            {/* Search */}
+            <div className="lg:col-span-2">
+              <div className="relative">
+                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
+                <Input
+                  placeholder="Nach Jobs suchen..."
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  className="pl-10 bg-gray-700 border-gray-600 text-white"
+                />
+              </div>
+            </div>
+
+            {/* Category Filter */}
+            <Select value={selectedCategory} onValueChange={setSelectedCategory}>
+              <SelectTrigger className="bg-gray-700 border-gray-600 text-white">
+                <SelectValue placeholder="Kategorie" />
+              </SelectTrigger>
+              <SelectContent className="bg-gray-700 border-gray-600">
+                <SelectItem value="all">Alle Kategorien</SelectItem>
+                <SelectItem value="Haushalt">Haushalt</SelectItem>
+                <SelectItem value="Garten">Garten</SelectItem>
+                <SelectItem value="Einkaufen">Einkaufen</SelectItem>
+                <SelectItem value="Tiere">Tiere</SelectItem>
+                <SelectItem value="Technik">Technik</SelectItem>
+              </SelectContent>
+            </Select>
+
+            {/* Job Type Filter */}
+            <Select value={selectedJobType} onValueChange={setSelectedJobType}>
+              <SelectTrigger className="bg-gray-700 border-gray-600 text-white">
+                <SelectValue placeholder="Typ" />
+              </SelectTrigger>
+              <SelectContent className="bg-gray-700 border-gray-600">
+                <SelectItem value="all">Alle Typen</SelectItem>
+                <SelectItem value="good_deeds">Good Deeds</SelectItem>
+                <SelectItem value="kein_bock">KeinBock</SelectItem>
+              </SelectContent>
+            </Select>
+
+            {/* Distance Filter */}
+            <Select value={maxDistance} onValueChange={setMaxDistance}>
+              <SelectTrigger className="bg-gray-700 border-gray-600 text-white">
+                <SelectValue placeholder="Entfernung" />
+              </SelectTrigger>
+              <SelectContent className="bg-gray-700 border-gray-600">
+                <SelectItem value="5">5 km</SelectItem>
+                <SelectItem value="10">10 km</SelectItem>
+                <SelectItem value="20">20 km</SelectItem>
+                <SelectItem value="50">50 km</SelectItem>
+              </SelectContent>
+            </Select>
           </div>
         </div>
 
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-          {/* Map Area */}
-          <div className="lg:col-span-2">
-            <Card className="bg-gray-800 border-gray-700 h-[600px]">
-              <CardContent className="p-0 h-full">
-                <div className="relative h-full bg-gray-700 rounded-lg overflow-hidden">
-                  {/* Placeholder for actual map */}
-                  <div className="absolute inset-0 flex items-center justify-center">
-                    <div className="text-center">
-                      <MapPin className="w-16 h-16 text-gray-500 mx-auto mb-4" />
-                      <p className="text-gray-400">Karte wird hier angezeigt</p>
-                      <p className="text-gray-500 text-sm">Google Maps Integration</p>
-                    </div>
-                  </div>
+        {/* View Toggle */}
+        <div className="flex justify-between items-center mb-6">
+          <div className="flex bg-gray-800 rounded-lg p-1">
+            <Button
+              variant={viewMode === 'map' ? 'default' : 'ghost'}
+              className={`px-4 py-2 ${viewMode === 'map' ? 'bg-blue-600 text-white' : 'text-gray-300'}`}
+              onClick={() => setViewMode('map')}
+            >
+              <MapIcon className="w-4 h-4 mr-2" />
+              Karte
+            </Button>
+            <Button
+              variant={viewMode === 'list' ? 'default' : 'ghost'}
+              className={`px-4 py-2 ${viewMode === 'list' ? 'bg-blue-600 text-white' : 'text-gray-300'}`}
+              onClick={() => setViewMode('list')}
+            >
+              <List className="w-4 h-4 mr-2" />
+              Liste
+            </Button>
+          </div>
+          <div className="text-gray-400">
+            {filteredJobs.length} Jobs gefunden
+          </div>
+        </div>
 
-                  {/* Mock Job Pins */}
-                  {mapJobs.map((job) => (
-                    <div
-                      key={job.id}
-                      className={`absolute w-8 h-8 rounded-full cursor-pointer transition-transform hover:scale-110 ${
-                        job.type === 'good_deeds' ? 'bg-green-600' : 'bg-blue-600'
-                      } flex items-center justify-center`}
-                      style={{
-                        left: `${20 + job.id * 15}%`,
-                        top: `${30 + job.id * 10}%`
-                      }}
-                      onClick={() => setSelectedJob(job)}
-                    >
-                      {job.type === 'good_deeds' ? (
-                        <Heart className="w-4 h-4 text-white" />
-                      ) : (
-                        <Euro className="w-4 h-4 text-white" />
-                      )}
-                    </div>
-                  ))}
+        {/* Map View */}
+        {viewMode === 'map' && (
+          <div className="bg-gray-800 rounded-lg p-4 mb-6">
+            <div className="bg-gray-700 rounded-lg h-96 flex items-center justify-center">
+              <div className="text-center text-gray-400">
+                <MapPin className="w-12 h-12 mx-auto mb-4" />
+                <p className="text-lg font-medium">Interaktive Karte</p>
+                <p className="text-sm">Google Maps Integration wird hier implementiert</p>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Jobs List */}
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          {filteredJobs.map((job) => (
+            <Card key={job.id} className="bg-gray-800 border-gray-700 hover:shadow-lg hover:shadow-blue-500/10 transition-all duration-200">
+              <CardHeader className="pb-3">
+                <div className="flex justify-between items-start">
+                  <CardTitle className="text-lg font-semibold text-white leading-tight">
+                    {job.title}
+                  </CardTitle>
+                  <Badge className={`${getJobTypeColor(job.job_type)} text-white`}>
+                    {getJobTypeLabel(job.job_type)}
+                  </Badge>
+                </div>
+              </CardHeader>
+              <CardContent>
+                <p className="text-gray-400 text-sm mb-3 line-clamp-2">
+                  {job.description}
+                </p>
+                
+                <div className="flex items-center text-sm text-gray-500 mb-2">
+                  <MapPin className="w-4 h-4 mr-1" />
+                  {job.location} • {job.distance}
+                </div>
+
+                <div className="flex items-center justify-between mb-4">
+                  <div className="text-sm text-gray-400">
+                    {job.estimated_duration} Min
+                  </div>
+                  <div className="text-lg font-bold text-white">
+                    {job.job_type === 'good_deeds' 
+                      ? `${job.karma_reward} Karma` 
+                      : `${job.budget}€`
+                    }
+                  </div>
+                </div>
+
+                <div className="flex items-center justify-between pt-3 border-t border-gray-700">
+                  <div className="text-sm text-gray-400">
+                    von {job.creator.first_name} {job.creator.last_name}
+                  </div>
+                  <Button 
+                    className="bg-green-600 hover:bg-green-700"
+                    onClick={() => handleApplyForJob(job.id)}
+                  >
+                    Bewerben
+                  </Button>
                 </div>
               </CardContent>
             </Card>
-          </div>
-
-          {/* Job Details Sidebar */}
-          <div className="space-y-4">
-            {selectedJob ? (
-              <Card className="bg-gray-800 border-gray-700">
-                <CardHeader>
-                  <div className="flex justify-between items-start">
-                    <CardTitle className="text-white text-lg">{selectedJob.title}</CardTitle>
-                    <Badge 
-                      className={selectedJob.type === 'good_deeds' 
-                        ? 'bg-green-600 hover:bg-green-700' 
-                        : 'bg-blue-600 hover:bg-blue-700'
-                      }
-                    >
-                      {selectedJob.type === 'good_deeds' ? 'Good Deed' : 'KeinBock'}
-                    </Badge>
-                  </div>
-                </CardHeader>
-                <CardContent className="space-y-4">
-                  <div className="flex items-center text-gray-400">
-                    <MapPin className="w-4 h-4 mr-2" />
-                    <span>{selectedJob.location} • {selectedJob.distance}</span>
-                  </div>
-
-                  <p className="text-gray-300">{selectedJob.description}</p>
-
-                  <div className="flex items-center justify-between">
-                    <span className="text-gray-400">Von: {selectedJob.creator}</span>
-                    <div className="text-right">
-                      {selectedJob.type === 'good_deeds' ? (
-                        <div className="flex items-center text-green-400">
-                          <Zap className="w-4 h-4 mr-1" />
-                          <span>{selectedJob.karma} Karma</span>
-                        </div>
-                      ) : (
-                        <div className="flex items-center text-blue-400">
-                          <Euro className="w-4 h-4 mr-1" />
-                          <span>{selectedJob.budget}€</span>
-                        </div>
-                      )}
-                    </div>
-                  </div>
-
-                  <Button className="w-full bg-blue-600 hover:bg-blue-700">
-                    Job annehmen
-                  </Button>
-                </CardContent>
-              </Card>
-            ) : (
-              <Card className="bg-gray-800 border-gray-700">
-                <CardContent className="p-6 text-center">
-                  <MapPin className="w-12 h-12 text-gray-500 mx-auto mb-4" />
-                  <p className="text-gray-400">Wählen Sie einen Job auf der Karte aus</p>
-                </CardContent>
-              </Card>
-            )}
-
-            {/* Nearby Jobs List */}
-            <Card className="bg-gray-800 border-gray-700">
-              <CardHeader>
-                <CardTitle className="text-white">Jobs in der Nähe</CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-3">
-                {mapJobs.map((job) => (
-                  <div
-                    key={job.id}
-                    className={`p-3 rounded-lg cursor-pointer transition-colors ${
-                      selectedJob?.id === job.id 
-                        ? 'bg-gray-700 border border-blue-600' 
-                        : 'bg-gray-700 hover:bg-gray-600'
-                    }`}
-                    onClick={() => setSelectedJob(job)}
-                  >
-                    <div className="flex justify-between items-start mb-2">
-                      <h4 className="text-white font-medium">{job.title}</h4>
-                      <Badge 
-                        size="sm"
-                        className={job.type === 'good_deeds' 
-                          ? 'bg-green-600' 
-                          : 'bg-blue-600'
-                        }
-                      >
-                        {job.type === 'good_deeds' ? job.karma + ' ⚡' : job.budget + '€'}
-                      </Badge>
-                    </div>
-                    <p className="text-gray-400 text-sm">{job.distance}</p>
-                  </div>
-                ))}
-              </CardContent>
-            </Card>
-          </div>
+          ))}
         </div>
+
+        {/* Empty State */}
+        {filteredJobs.length === 0 && (
+          <div className="text-center py-12">
+            <MapPin className="w-16 h-16 text-gray-600 mx-auto mb-4" />
+            <h3 className="text-lg font-medium text-white mb-2">Keine Jobs gefunden</h3>
+            <p className="text-gray-400 mb-6">Versuche andere Filter oder erstelle einen neuen Job</p>
+            <Dialog open={isCreateModalOpen} onOpenChange={setIsCreateModalOpen}>
+              <DialogTrigger asChild>
+                <Button className="bg-blue-600 hover:bg-blue-700">
+                  <Plus className="w-4 h-4 mr-2" />
+                  Ersten Job erstellen
+                </Button>
+              </DialogTrigger>
+              <CreateJobModal onSubmit={handleCreateJob} />
+            </Dialog>
+          </div>
+        )}
       </main>
     </div>
   );
