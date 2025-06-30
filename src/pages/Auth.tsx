@@ -1,30 +1,32 @@
 
-import React, { useState } from 'react';
-import { Mail, Lock, User, Phone, MapPin, Eye, EyeOff, ArrowRight } from 'lucide-react';
+import React, { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { useNavigate } from 'react-router-dom';
-import { supabase } from '@/integrations/supabase/client';
-import { useToast } from '@/hooks/use-toast';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { useAuth } from '@/hooks/useAuth';
+import { Eye, EyeOff, Mail, Lock, User } from 'lucide-react';
 
 const Auth = () => {
-  const [isLogin, setIsLogin] = useState(true);
-  const [showPassword, setShowPassword] = useState(false);
+  const navigate = useNavigate();
+  const { user, signIn, signUp, loading } = useAuth();
   const [isLoading, setIsLoading] = useState(false);
+  const [showPassword, setShowPassword] = useState(false);
   const [formData, setFormData] = useState({
     email: '',
     password: '',
-    confirmPassword: '',
     firstName: '',
     lastName: '',
-    phone: '',
-    location: ''
+    confirmPassword: '',
   });
-  
-  const navigate = useNavigate();
-  const { toast } = useToast();
+
+  useEffect(() => {
+    if (user && !loading) {
+      navigate('/dashboard');
+    }
+  }, [user, loading, navigate]);
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setFormData(prev => ({
@@ -33,252 +35,233 @@ const Auth = () => {
     }));
   };
 
-  const handleSubmit = async (e: React.FormEvent) => {
+  const handleSignIn = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsLoading(true);
-
     try {
-      if (isLogin) {
-        const { error } = await supabase.auth.signInWithPassword({
-          email: formData.email,
-          password: formData.password,
-        });
-
-        if (error) throw error;
-        
-        toast({
-          title: "Willkommen zurück!",
-          description: "Sie wurden erfolgreich angemeldet.",
-        });
-        navigate('/dashboard');
-      } else {
-        if (formData.password !== formData.confirmPassword) {
-          throw new Error('Passwörter stimmen nicht überein');
-        }
-
-        const { error } = await supabase.auth.signUp({
-          email: formData.email,
-          password: formData.password,
-          options: {
-            emailRedirectTo: `${window.location.origin}/dashboard`,
-            data: {
-              first_name: formData.firstName,
-              last_name: formData.lastName,
-              phone: formData.phone,
-              location: formData.location
-            }
-          }
-        });
-
-        if (error) throw error;
-
-        toast({
-          title: "Registrierung erfolgreich!",
-          description: "Bitte bestätigen Sie Ihre E-Mail-Adresse.",
-        });
-      }
-    } catch (error: any) {
-      toast({
-        title: "Fehler",
-        description: error.message,
-        variant: "destructive",
-      });
+      await signIn(formData.email, formData.password);
+    } catch (error) {
+      console.error('Sign in error:', error);
     } finally {
       setIsLoading(false);
     }
   };
 
+  const handleSignUp = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (formData.password !== formData.confirmPassword) {
+      alert('Passwörter stimmen nicht überein');
+      return;
+    }
+    setIsLoading(true);
+    try {
+      await signUp(formData.email, formData.password, {
+        first_name: formData.firstName,
+        last_name: formData.lastName,
+      });
+    } catch (error) {
+      console.error('Sign up error:', error);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-gray-900 flex items-center justify-center">
+        <div className="animate-spin rounded-full h-8 w-8 border-t-2 border-blue-400"></div>
+      </div>
+    );
+  }
+
   return (
     <div className="min-h-screen bg-gray-900 flex items-center justify-center p-4">
       <div className="w-full max-w-md">
         {/* Logo */}
-        <div className="text-center mb-8">
+        <div className="text-center mb-8 scroll-fade-in">
           <img 
             src="/lovable-uploads/297ee6c8-01e0-4f29-ab9c-61eef3186daf.png" 
             alt="Mutuus" 
-            className="h-16 w-auto mx-auto mb-4"
+            className="h-16 w-auto mx-auto mb-4 floating glow-blue"
           />
-          <h1 className="text-2xl font-bold text-white mb-2">
-            {isLogin ? 'Willkommen zurück' : 'Bei Mutuus registrieren'}
-          </h1>
-          <p className="text-gray-400">
-            {isLogin ? 'Melden Sie sich in Ihrem Konto an' : 'Verbinde dich lokal, hilf oder lass dir helfen'}
-          </p>
+          <h1 className="text-3xl font-bold text-white text-glow">Willkommen bei Mutuus</h1>
+          <p className="text-gray-400 mt-2">Die Community für gegenseitige Hilfe</p>
         </div>
 
-        <Card className="bg-gray-800 border-gray-700">
+        <Card className="bg-gray-800 border-gray-700 card-futuristic glow-blue scroll-scale-in">
           <CardHeader>
-            <CardTitle className="text-white text-center">
-              {isLogin ? 'Anmelden' : 'Registrieren'}
+            <CardTitle className="text-center text-white">
+              Anmelden oder Registrieren
             </CardTitle>
           </CardHeader>
           <CardContent>
-            <form onSubmit={handleSubmit} className="space-y-4">
-              {!isLogin && (
-                <>
+            <Tabs defaultValue="signin" className="w-full">
+              <TabsList className="grid w-full grid-cols-2 bg-gray-700">
+                <TabsTrigger value="signin" className="text-white">Anmelden</TabsTrigger>
+                <TabsTrigger value="signup" className="text-white">Registrieren</TabsTrigger>
+              </TabsList>
+
+              <TabsContent value="signin">
+                <form onSubmit={handleSignIn} className="space-y-4">
+                  <div className="space-y-2">
+                    <Label htmlFor="email" className="text-white">E-Mail</Label>
+                    <div className="relative">
+                      <Mail className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
+                      <Input
+                        id="email"
+                        name="email"
+                        type="email"
+                        placeholder="ihre@email.de"
+                        className="pl-10 bg-gray-700 border-gray-600 text-white"
+                        value={formData.email}
+                        onChange={handleInputChange}
+                        required
+                      />
+                    </div>
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label htmlFor="password" className="text-white">Passwort</Label>
+                    <div className="relative">
+                      <Lock className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
+                      <Input
+                        id="password"
+                        name="password"
+                        type={showPassword ? "text" : "password"}
+                        placeholder="Ihr Passwort"
+                        className="pl-10 pr-10 bg-gray-700 border-gray-600 text-white"
+                        value={formData.password}
+                        onChange={handleInputChange}
+                        required
+                      />
+                      <button
+                        type="button"
+                        onClick={() => setShowPassword(!showPassword)}
+                        className="absolute right-3 top-3 text-gray-400 hover:text-white"
+                      >
+                        {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                      </button>
+                    </div>
+                  </div>
+
+                  <Button 
+                    type="submit" 
+                    className="w-full btn-futuristic glow-blue hover-lift"
+                    disabled={isLoading}
+                  >
+                    {isLoading ? 'Wird angemeldet...' : 'Anmelden'}
+                  </Button>
+                </form>
+              </TabsContent>
+
+              <TabsContent value="signup">
+                <form onSubmit={handleSignUp} className="space-y-4">
                   <div className="grid grid-cols-2 gap-4">
-                    <div>
-                      <Label htmlFor="firstName" className="text-gray-300">Vorname</Label>
+                    <div className="space-y-2">
+                      <Label htmlFor="firstName" className="text-white">Vorname</Label>
                       <div className="relative">
                         <User className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
                         <Input
                           id="firstName"
                           name="firstName"
-                          type="text"
+                          placeholder="Max"
+                          className="pl-10 bg-gray-700 border-gray-600 text-white"
                           value={formData.firstName}
                           onChange={handleInputChange}
-                          className="pl-10 bg-gray-700 border-gray-600 text-white"
-                          required={!isLogin}
+                          required
                         />
                       </div>
                     </div>
-                    <div>
-                      <Label htmlFor="lastName" className="text-gray-300">Nachname</Label>
-                      <div className="relative">
-                        <User className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
-                        <Input
-                          id="lastName"
-                          name="lastName"
-                          type="text"
-                          value={formData.lastName}
-                          onChange={handleInputChange}
-                          className="pl-10 bg-gray-700 border-gray-600 text-white"
-                          required={!isLogin}
-                        />
-                      </div>
-                    </div>
-                  </div>
 
-                  <div>
-                    <Label htmlFor="phone" className="text-gray-300">Telefonnummer</Label>
-                    <div className="relative">
-                      <Phone className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
+                    <div className="space-y-2">
+                      <Label htmlFor="lastName" className="text-white">Nachname</Label>
                       <Input
-                        id="phone"
-                        name="phone"
-                        type="tel"
-                        value={formData.phone}
+                        id="lastName"
+                        name="lastName"
+                        placeholder="Mustermann"
+                        className="bg-gray-700 border-gray-600 text-white"
+                        value={formData.lastName}
                         onChange={handleInputChange}
-                        className="pl-10 bg-gray-700 border-gray-600 text-white"
-                        required={!isLogin}
+                        required
                       />
                     </div>
                   </div>
 
-                  <div>
-                    <Label htmlFor="location" className="text-gray-300">Standort</Label>
+                  <div className="space-y-2">
+                    <Label htmlFor="signup-email" className="text-white">E-Mail</Label>
                     <div className="relative">
-                      <MapPin className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
+                      <Mail className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
                       <Input
-                        id="location"
-                        name="location"
-                        type="text"
-                        value={formData.location}
-                        onChange={handleInputChange}
+                        id="signup-email"
+                        name="email"
+                        type="email"
+                        placeholder="ihre@email.de"
                         className="pl-10 bg-gray-700 border-gray-600 text-white"
-                        placeholder="z.B. Berlin, Deutschland"
-                        required={!isLogin}
+                        value={formData.email}
+                        onChange={handleInputChange}
+                        required
                       />
                     </div>
                   </div>
-                </>
-              )}
 
-              <div>
-                <Label htmlFor="email" className="text-gray-300">E-Mail</Label>
-                <div className="relative">
-                  <Mail className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
-                  <Input
-                    id="email"
-                    name="email"
-                    type="email"
-                    value={formData.email}
-                    onChange={handleInputChange}
-                    className="pl-10 bg-gray-700 border-gray-600 text-white"
-                    required
-                  />
-                </div>
-              </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="signup-password" className="text-white">Passwort</Label>
+                    <div className="relative">
+                      <Lock className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
+                      <Input
+                        id="signup-password"
+                        name="password"
+                        type={showPassword ? "text" : "password"}
+                        placeholder="Mindestens 6 Zeichen"
+                        className="pl-10 pr-10 bg-gray-700 border-gray-600 text-white"
+                        value={formData.password}
+                        onChange={handleInputChange}
+                        required
+                        minLength={6}
+                      />
+                      <button
+                        type="button"
+                        onClick={() => setShowPassword(!showPassword)}
+                        className="absolute right-3 top-3 text-gray-400 hover:text-white"
+                      >
+                        {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                      </button>
+                    </div>
+                  </div>
 
-              <div>
-                <Label htmlFor="password" className="text-gray-300">Passwort</Label>
-                <div className="relative">
-                  <Lock className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
-                  <Input
-                    id="password"
-                    name="password"
-                    type={showPassword ? "text" : "password"}
-                    value={formData.password}
-                    onChange={handleInputChange}
-                    className="pl-10 pr-10 bg-gray-700 border-gray-600 text-white"
-                    required
-                  />
-                  <button
-                    type="button"
-                    onClick={() => setShowPassword(!showPassword)}
-                    className="absolute right-3 top-3 text-gray-400 hover:text-white"
+                  <div className="space-y-2">
+                    <Label htmlFor="confirmPassword" className="text-white">Passwort bestätigen</Label>
+                    <div className="relative">
+                      <Lock className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
+                      <Input
+                        id="confirmPassword"
+                        name="confirmPassword"
+                        type="password"
+                        placeholder="Passwort wiederholen"
+                        className="pl-10 bg-gray-700 border-gray-600 text-white"
+                        value={formData.confirmPassword}
+                        onChange={handleInputChange}
+                        required
+                      />
+                    </div>
+                  </div>
+
+                  <Button 
+                    type="submit" 
+                    className="w-full btn-futuristic glow-green hover-lift"
+                    disabled={isLoading}
                   >
-                    {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
-                  </button>
-                </div>
-              </div>
-
-              {!isLogin && (
-                <div>
-                  <Label htmlFor="confirmPassword" className="text-gray-300">Passwort bestätigen</Label>
-                  <div className="relative">
-                    <Lock className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
-                    <Input
-                      id="confirmPassword"
-                      name="confirmPassword"
-                      type="password"
-                      value={formData.confirmPassword}
-                      onChange={handleInputChange}
-                      className="pl-10 bg-gray-700 border-gray-600 text-white"
-                      required={!isLogin}
-                    />
-                  </div>
-                </div>
-              )}
-
-              <Button
-                type="submit"
-                className="w-full bg-blue-600 hover:bg-blue-700"
-                disabled={isLoading}
-              >
-                {isLoading ? 'Wird geladen...' : (
-                  <>
-                    {isLogin ? 'Anmelden' : 'Registrieren'}
-                    <ArrowRight className="ml-2 h-4 w-4" />
-                  </>
-                )}
-              </Button>
-            </form>
-
-            <div className="mt-6 text-center">
-              <button
-                type="button"
-                onClick={() => setIsLogin(!isLogin)}
-                className="text-blue-400 hover:text-blue-300"
-              >
-                {isLogin 
-                  ? 'Noch kein Konto? Jetzt registrieren' 
-                  : 'Bereits ein Konto? Anmelden'}
-              </button>
-            </div>
-
-            <div className="mt-6 pt-6 border-t border-gray-700">
-              <div className="text-center space-y-2">
-                <a href="#" className="text-blue-400 hover:text-blue-300 text-sm block">
-                  FAQ
-                </a>
-                <a href="#" className="text-blue-400 hover:text-blue-300 text-sm block">
-                  Support kontaktieren
-                </a>
-              </div>
-            </div>
+                    {isLoading ? 'Wird registriert...' : 'Registrieren'}
+                  </Button>
+                </form>
+              </TabsContent>
+            </Tabs>
           </CardContent>
         </Card>
+
+        <p className="text-center text-gray-400 text-sm mt-6 scroll-fade-in delay-300">
+          Mit der Registrierung stimmen Sie unseren Nutzungsbedingungen zu.
+        </p>
       </div>
     </div>
   );

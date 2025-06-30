@@ -36,6 +36,33 @@ export type Database = {
         }
         Relationships: []
       }
+      activity_log: {
+        Row: {
+          action: string
+          created_at: string | null
+          description: string | null
+          id: string
+          metadata: Json | null
+          user_id: string
+        }
+        Insert: {
+          action: string
+          created_at?: string | null
+          description?: string | null
+          id?: string
+          metadata?: Json | null
+          user_id: string
+        }
+        Update: {
+          action?: string
+          created_at?: string | null
+          description?: string | null
+          id?: string
+          metadata?: Json | null
+          user_id?: string
+        }
+        Relationships: []
+      }
       favorites: {
         Row: {
           created_at: string | null
@@ -234,6 +261,36 @@ export type Database = {
           },
         ]
       }
+      notifications: {
+        Row: {
+          created_at: string | null
+          id: string
+          message: string
+          read_at: string | null
+          title: string
+          type: string | null
+          user_id: string
+        }
+        Insert: {
+          created_at?: string | null
+          id?: string
+          message: string
+          read_at?: string | null
+          title: string
+          type?: string | null
+          user_id: string
+        }
+        Update: {
+          created_at?: string | null
+          id?: string
+          message?: string
+          read_at?: string | null
+          title?: string
+          type?: string | null
+          user_id?: string
+        }
+        Relationships: []
+      }
       profiles: {
         Row: {
           avatar_url: string | null
@@ -243,10 +300,14 @@ export type Database = {
           id: string
           is_verified: boolean | null
           karma_points: number | null
+          last_active: string | null
           last_name: string | null
           location: string | null
           phone: string | null
+          streak_days: number | null
           total_earned: number | null
+          tutorial_completed: boolean | null
+          tutorial_progress: number | null
           updated_at: string | null
         }
         Insert: {
@@ -257,10 +318,14 @@ export type Database = {
           id: string
           is_verified?: boolean | null
           karma_points?: number | null
+          last_active?: string | null
           last_name?: string | null
           location?: string | null
           phone?: string | null
+          streak_days?: number | null
           total_earned?: number | null
+          tutorial_completed?: boolean | null
+          tutorial_progress?: number | null
           updated_at?: string | null
         }
         Update: {
@@ -271,10 +336,14 @@ export type Database = {
           id?: string
           is_verified?: boolean | null
           karma_points?: number | null
+          last_active?: string | null
           last_name?: string | null
           location?: string | null
           phone?: string | null
+          streak_days?: number | null
           total_earned?: number | null
+          tutorial_completed?: boolean | null
+          tutorial_progress?: number | null
           updated_at?: string | null
         }
         Relationships: []
@@ -391,6 +460,36 @@ export type Database = {
           },
         ]
       }
+      tutorial_progress: {
+        Row: {
+          category_id: string
+          completed_at: string | null
+          id: string
+          lesson_id: string
+          time_spent: number | null
+          user_id: string
+          xp_earned: number | null
+        }
+        Insert: {
+          category_id: string
+          completed_at?: string | null
+          id?: string
+          lesson_id: string
+          time_spent?: number | null
+          user_id: string
+          xp_earned?: number | null
+        }
+        Update: {
+          category_id?: string
+          completed_at?: string | null
+          id?: string
+          lesson_id?: string
+          time_spent?: number | null
+          user_id?: string
+          xp_earned?: number | null
+        }
+        Relationships: []
+      }
       user_achievements: {
         Row: {
           achievement_id: string
@@ -420,12 +519,52 @@ export type Database = {
           },
         ]
       }
+      user_settings: {
+        Row: {
+          created_at: string | null
+          dark_mode: boolean | null
+          email_notifications: boolean | null
+          id: string
+          language: string | null
+          notifications_enabled: boolean | null
+          updated_at: string | null
+          user_id: string
+        }
+        Insert: {
+          created_at?: string | null
+          dark_mode?: boolean | null
+          email_notifications?: boolean | null
+          id?: string
+          language?: string | null
+          notifications_enabled?: boolean | null
+          updated_at?: string | null
+          user_id: string
+        }
+        Update: {
+          created_at?: string | null
+          dark_mode?: boolean | null
+          email_notifications?: boolean | null
+          id?: string
+          language?: string | null
+          notifications_enabled?: boolean | null
+          updated_at?: string | null
+          user_id?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
     }
     Functions: {
-      [_ in never]: never
+      calculate_user_level: {
+        Args: { user_id: string }
+        Returns: number
+      }
+      update_user_streak: {
+        Args: { user_id: string }
+        Returns: undefined
+      }
     }
     Enums: {
       [_ in never]: never

@@ -1,5 +1,5 @@
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Plus, Calendar, FolderOpen, Star } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -7,27 +7,20 @@ import { Badge } from '@/components/ui/badge';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { CreateProjectModal } from '@/components/CreateProjectModal';
 import { DashboardHeader } from '@/components/DashboardHeader';
-
-// Mock data - will be replaced with Supabase data
-const mockProjects = [
-  { id: 1, user_id: "user-123", name: "Website Redesign", status: "active", description: "Complete overhaul of company website", due_date: "2024-07-15" },
-  { id: 2, user_id: "user-123", name: "API Integration", status: "archived", description: "Integrate third-party APIs", due_date: "2024-06-30" },
-  { id: 3, user_id: "user-123", name: "Mobile App Development", status: "active", description: "Build React Native mobile app", due_date: "2024-08-20" },
-  { id: 4, user_id: "user-123", name: "Database Migration", status: "active", description: "Migrate to new database system", due_date: "2024-07-01" },
-];
+import { useAuth } from '@/hooks/useAuth';
+import { useProfile } from '@/hooks/useProfile';
+import { useTutorial } from '@/hooks/useTutorial';
+import { useJobs } from '@/hooks/useJobs';
 
 const Dashboard = () => {
-  const [projects, setProjects] = useState(mockProjects);
+  const { user } = useAuth();
+  const { profile } = useProfile();
+  const { getTotalXP, getCompletedLessonsCount } = useTutorial();
+  const { jobs, myJobs } = useJobs();
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
 
   const handleCreateProject = (projectData: any) => {
-    const newProject = {
-      id: projects.length + 1,
-      user_id: "user-123",
-      ...projectData,
-      status: "active"
-    };
-    setProjects([...projects, newProject]);
+    console.log('Creating project:', projectData);
     setIsCreateModalOpen(false);
   };
 
@@ -58,22 +51,14 @@ const Dashboard = () => {
       <DashboardHeader />
       
       <main className="container mx-auto px-4 py-8">
-        {/* Dashboard Title and Create Button */}
+        {/* Dashboard Title and Welcome */}
         <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-8 scroll-fade-in">
           <div>
-            <h1 className="text-3xl font-bold text-white mb-2 text-glow">Dashboard</h1>
-            <p className="text-gray-400">Verwalten Sie Ihre Projekte und Aufgaben</p>
+            <h1 className="text-3xl font-bold text-white mb-2 text-glow">
+              Willkommen zurück, {profile?.first_name || user?.email}!
+            </h1>
+            <p className="text-gray-400">Hier ist Ihr persönliches Dashboard</p>
           </div>
-          
-          <Dialog open={isCreateModalOpen} onOpenChange={setIsCreateModalOpen}>
-            <DialogTrigger asChild>
-              <Button className="mt-4 sm:mt-0 btn-futuristic glow-blue hover-lift">
-                <Plus className="w-4 h-4 mr-2" />
-                Neues Projekt
-              </Button>
-            </DialogTrigger>
-            <CreateProjectModal onSubmit={handleCreateProject} />
-          </Dialog>
         </div>
 
         {/* Stats Cards */}
@@ -82,9 +67,9 @@ const Dashboard = () => {
             <CardContent className="p-6">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-sm font-medium text-gray-400">Aktive Projekte</p>
+                  <p className="text-sm font-medium text-gray-400">Verfügbare Jobs</p>
                   <p className="text-3xl font-bold text-white text-glow">
-                    {projects.filter(p => p.status === 'active').length}
+                    {jobs.length}
                   </p>
                 </div>
                 <div className="bg-blue-600 p-3 rounded-full floating glow-blue">
@@ -98,8 +83,8 @@ const Dashboard = () => {
             <CardContent className="p-6">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-sm font-medium text-gray-400">Gesamt Projekte</p>
-                  <p className="text-3xl font-bold text-white text-glow-green">{projects.length}</p>
+                  <p className="text-sm font-medium text-gray-400">Meine Jobs</p>
+                  <p className="text-3xl font-bold text-white text-glow-green">{myJobs.length}</p>
                 </div>
                 <div className="bg-green-600 p-3 rounded-full floating glow-green">
                   <Star className="w-6 h-6 text-white" />
@@ -112,8 +97,8 @@ const Dashboard = () => {
             <CardContent className="p-6">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-sm font-medium text-gray-400">Streak</p>
-                  <p className="text-3xl font-bold text-white">7</p>
+                  <p className="text-sm font-medium text-gray-400">Karma</p>
+                  <p className="text-3xl font-bold text-white">{profile?.karma_points || 0}</p>
                 </div>
                 <div className="bg-orange-600 p-3 rounded-full floating glow-orange pulse-glow">
                   <span className="text-white text-xl">🔥</span>
@@ -127,7 +112,9 @@ const Dashboard = () => {
               <div className="flex items-center justify-between">
                 <div>
                   <p className="text-sm font-medium text-gray-400">Verdienst</p>
-                  <p className="text-3xl font-bold text-white text-glow-purple">5.00€</p>
+                  <p className="text-3xl font-bold text-white text-glow-purple">
+                    {profile?.total_earned?.toFixed(2) || '0.00'}€
+                  </p>
                 </div>
                 <div className="bg-purple-600 p-3 rounded-full floating glow-purple">
                   <span className="text-white text-xl">💰</span>
@@ -137,58 +124,107 @@ const Dashboard = () => {
           </Card>
         </div>
 
-        {/* Projects Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {projects.map((project, index) => (
-            <Card key={project.id} className={`bg-gray-800 border-gray-700 card-futuristic hover-lift glow-blue scroll-scale-in delay-${(index + 1) * 100}`}>
-              <CardHeader className="pb-3">
-                <div className="flex justify-between items-start">
-                  <CardTitle className="text-lg font-semibold text-white leading-tight hover-glow">
-                    {project.name}
-                  </CardTitle>
-                  {getStatusBadge(project.status)}
+        {/* Quick Actions */}
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
+          <Card className="bg-gray-800 border-gray-700 card-futuristic hover-lift glow-blue scroll-scale-in delay-100">
+            <CardHeader className="pb-3">
+              <CardTitle className="text-lg font-semibold text-white leading-tight hover-glow">
+                Campus Progress
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="space-y-4">
+                <div className="flex justify-between items-center">
+                  <span className="text-gray-400">Lektionen abgeschlossen</span>
+                  <span className="text-white font-medium">{getCompletedLessonsCount()}</span>
                 </div>
-              </CardHeader>
-              <CardContent>
-                {project.description && (
-                  <p className="text-gray-400 text-sm mb-4 line-clamp-2">
-                    {project.description}
-                  </p>
-                )}
-                {project.due_date && (
-                  <div className="flex items-center text-sm text-gray-500 mb-4">
-                    <Calendar className="w-4 h-4 mr-1" />
-                    Fällig: {formatDate(project.due_date)}
+                <div className="flex justify-between items-center">
+                  <span className="text-gray-400">Gesamt XP</span>
+                  <span className="text-yellow-400 font-medium">{getTotalXP()}</span>
+                </div>
+                <Button 
+                  onClick={() => window.location.href = '/tutorial'} 
+                  className="w-full btn-futuristic glow-blue hover-lift"
+                >
+                  Campus besuchen
+                </Button>
+              </div>
+            </CardContent>
+          </Card>
+
+          <Card className="bg-gray-800 border-gray-700 card-futuristic hover-lift glow-green scroll-scale-in delay-200">
+            <CardHeader className="pb-3">
+              <CardTitle className="text-lg font-semibold text-white leading-tight hover-glow">
+                Streak
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="space-y-4">
+                <div className="text-center">
+                  <div className="text-4xl font-bold text-orange-400 floating">
+                    {profile?.streak_days || 0}
                   </div>
-                )}
-                <div className="pt-4 border-t border-gray-700">
-                  <Button variant="outline" size="sm" className="w-full btn-futuristic hover-lift">
-                    <FolderOpen className="w-4 h-4 mr-2" />
-                    Projekt öffnen
-                  </Button>
+                  <div className="text-gray-400">Tage in Folge</div>
                 </div>
-              </CardContent>
-            </Card>
-          ))}
+                <p className="text-sm text-gray-400 text-center">
+                  Bleiben Sie aktiv, um Ihre Streak zu halten!
+                </p>
+              </div>
+            </CardContent>
+          </Card>
+
+          <Card className="bg-gray-800 border-gray-700 card-futuristic hover-lift glow-purple scroll-scale-in delay-300">
+            <CardHeader className="pb-3">
+              <CardTitle className="text-lg font-semibold text-white leading-tight hover-glow">
+                Schnellaktionen
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="space-y-2">
+                <Button 
+                  onClick={() => window.location.href = '/jobs'} 
+                  variant="outline" 
+                  className="w-full btn-futuristic hover-lift"
+                >
+                  Jobs durchsuchen
+                </Button>
+                <Button 
+                  onClick={() => window.location.href = '/map'} 
+                  variant="outline" 
+                  className="w-full btn-futuristic hover-lift"
+                >
+                  Karte öffnen
+                </Button>
+                <Button 
+                  onClick={() => window.location.href = '/profile'} 
+                  variant="outline" 
+                  className="w-full btn-futuristic hover-lift"
+                >
+                  Profil bearbeiten
+                </Button>
+              </div>
+            </CardContent>
+          </Card>
         </div>
 
-        {/* Empty State */}
-        {projects.length === 0 && (
-          <div className="text-center py-12 scroll-fade-in">
-            <FolderOpen className="w-16 h-16 text-gray-600 mx-auto mb-4 floating" />
-            <h3 className="text-lg font-medium text-white mb-2">Keine Projekte gefunden</h3>
-            <p className="text-gray-400 mb-6">Erstellen Sie Ihr erstes Projekt, um loszulegen</p>
-            <Dialog open={isCreateModalOpen} onOpenChange={setIsCreateModalOpen}>
-              <DialogTrigger asChild>
-                <Button className="btn-futuristic glow-blue hover-lift">
-                  <Plus className="w-4 h-4 mr-2" />
-                  Erstes Projekt erstellen
-                </Button>
-              </DialogTrigger>
-              <CreateProjectModal onSubmit={handleCreateProject} />
-            </Dialog>
-          </div>
-        )}
+        {/* Recent Activity */}
+        <Card className="bg-gray-800 border-gray-700 card-futuristic hover-lift glow-blue scroll-fade-in delay-400">
+          <CardHeader>
+            <CardTitle className="text-white text-glow">Letzte Aktivitäten</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="space-y-4">
+              <div className="flex items-center space-x-4 p-4 bg-gray-700 rounded-lg hover-lift">
+                <div className="w-2 h-2 bg-green-400 rounded-full"></div>
+                <div className="flex-1">
+                  <p className="text-white font-medium">Willkommen bei Mutuus!</p>
+                  <p className="text-gray-400 text-sm">Erkunden Sie die App und verdienen Sie Ihre ersten Punkte</p>
+                </div>
+                <span className="text-gray-400 text-sm">Heute</span>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
       </main>
     </div>
   );

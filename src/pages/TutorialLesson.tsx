@@ -7,6 +7,7 @@ import { Progress } from '@/components/ui/progress';
 import { Badge } from '@/components/ui/badge';
 import { DashboardHeader } from '@/components/DashboardHeader';
 import { useNavigate, useParams } from 'react-router-dom';
+import { useTutorial } from '@/hooks/useTutorial';
 
 interface LessonStep {
   title: string;
@@ -26,6 +27,7 @@ interface LessonData {
 const TutorialLesson = () => {
   const navigate = useNavigate();
   const { categoryId, lessonId } = useParams();
+  const { completeLesson, isLessonCompleted } = useTutorial();
   const [currentStep, setCurrentStep] = useState(0);
   const [isCompleted, setIsCompleted] = useState(false);
   const [timeSpent, setTimeSpent] = useState(0);
@@ -77,6 +79,32 @@ const TutorialLesson = () => {
         }
       ]
     },
+    'profile-setup': {
+      title: 'Profil einrichten',
+      description: 'Vervollständigen Sie Ihr Profil für bessere Jobs',
+      duration: '10 Min',
+      xp: 100,
+      steps: [
+        {
+          title: 'Profil-Grundlagen',
+          content: 'Ein vollständiges Profil erhöht Ihre Chancen auf interessante Jobs erheblich.',
+          tips: [
+            'Laden Sie ein professionelles Profilbild hoch',
+            'Schreiben Sie eine aussagekräftige Bio',
+            'Geben Sie Ihre Fähigkeiten und Interessen an'
+          ]
+        },
+        {
+          title: 'Vertrauen aufbauen',
+          content: 'Vertrauen ist das Fundament unserer Community. Zeigen Sie, dass Sie zuverlässig sind.',
+          tips: [
+            'Verifizieren Sie Ihre E-Mail-Adresse',
+            'Fügen Sie Kontaktinformationen hinzu',
+            'Sammeln Sie erste positive Bewertungen'
+          ]
+        }
+      ]
+    },
     'finding-jobs': {
       title: 'Jobs finden',
       description: 'Strategien zum Finden der besten Jobs für Sie',
@@ -124,6 +152,12 @@ const TutorialLesson = () => {
     return () => clearInterval(timer);
   }, []);
 
+  useEffect(() => {
+    if (lessonId && isLessonCompleted(lessonId)) {
+      // Lesson already completed, but allow reviewing
+    }
+  }, [lessonId, isLessonCompleted]);
+
   if (!currentLesson) {
     return (
       <div className="min-h-screen bg-gray-900">
@@ -157,9 +191,13 @@ const TutorialLesson = () => {
     }
   };
 
-  const handleComplete = () => {
-    // In a real app, this would save progress to the backend
-    navigate('/tutorial');
+  const handleComplete = async () => {
+    if (lessonId && categoryId) {
+      const success = await completeLesson(lessonId, categoryId, currentLesson.xp, timeSpent);
+      if (success) {
+        navigate('/tutorial');
+      }
+    }
   };
 
   const formatTime = (seconds: number) => {
@@ -368,7 +406,7 @@ const TutorialLesson = () => {
                     onClick={handleComplete}
                     className="btn-futuristic glow-blue hover-lift"
                   >
-                    Nächste Lektion
+                    Fertig
                   </Button>
                 </div>
               </div>
