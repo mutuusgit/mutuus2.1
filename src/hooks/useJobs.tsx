@@ -35,6 +35,29 @@ interface JobApplication {
   created_at: string;
 }
 
+// Type for database job data
+type DatabaseJob = {
+  id: string;
+  creator_id: string;
+  title: string;
+  description: string | null;
+  category: string;
+  job_type: string;
+  budget?: number | null;
+  karma_reward?: number | null;
+  location: string;
+  latitude?: number | null;
+  longitude?: number | null;
+  status: string | null;
+  assigned_to?: string | null;
+  estimated_duration?: number | null;
+  due_date?: string | null;
+  images?: string[] | null;
+  requirements?: string[] | null;
+  created_at: string | null;
+  updated_at: string | null;
+};
+
 export function useJobs() {
   const { user } = useAuth();
   const { toast } = useToast();
@@ -51,6 +74,29 @@ export function useJobs() {
     }
   }, [user]);
 
+  // Helper function to transform database job to our Job interface
+  const transformDatabaseJob = (dbJob: DatabaseJob): Job => ({
+    id: dbJob.id,
+    creator_id: dbJob.creator_id,
+    title: dbJob.title,
+    description: dbJob.description || '',
+    category: dbJob.category,
+    job_type: (dbJob.job_type === 'good_deeds' || dbJob.job_type === 'kein_bock') ? dbJob.job_type : 'good_deeds',
+    budget: dbJob.budget || undefined,
+    karma_reward: dbJob.karma_reward || undefined,
+    location: dbJob.location,
+    latitude: dbJob.latitude || undefined,
+    longitude: dbJob.longitude || undefined,
+    status: dbJob.status || 'open',
+    assigned_to: dbJob.assigned_to || undefined,
+    estimated_duration: dbJob.estimated_duration || undefined,
+    due_date: dbJob.due_date || undefined,
+    images: dbJob.images || undefined,
+    requirements: dbJob.requirements || undefined,
+    created_at: dbJob.created_at || new Date().toISOString(),
+    updated_at: dbJob.updated_at || new Date().toISOString(),
+  });
+
   const fetchJobs = async () => {
     try {
       const { data, error } = await supabase
@@ -60,7 +106,9 @@ export function useJobs() {
         .order('created_at', { ascending: false });
 
       if (error) throw error;
-      setJobs(data || []);
+      
+      const transformedJobs = (data || []).map(transformDatabaseJob);
+      setJobs(transformedJobs);
     } catch (error: any) {
       console.error('Error fetching jobs:', error);
     } finally {
@@ -79,7 +127,9 @@ export function useJobs() {
         .order('created_at', { ascending: false });
 
       if (error) throw error;
-      setMyJobs(data || []);
+      
+      const transformedJobs = (data || []).map(transformDatabaseJob);
+      setMyJobs(transformedJobs);
     } catch (error: any) {
       console.error('Error fetching my jobs:', error);
     }
@@ -106,12 +156,31 @@ export function useJobs() {
     try {
       if (!user) throw new Error('Not authenticated');
 
+      // Ensure required fields are present
+      if (!jobData.title || !jobData.category || !jobData.location || !jobData.job_type) {
+        throw new Error('Missing required job data');
+      }
+
+      const insertData = {
+        creator_id: user.id,
+        title: jobData.title,
+        description: jobData.description || null,
+        category: jobData.category,
+        job_type: jobData.job_type,
+        budget: jobData.budget || null,
+        karma_reward: jobData.karma_reward || null,
+        location: jobData.location,
+        latitude: jobData.latitude || null,
+        longitude: jobData.longitude || null,
+        estimated_duration: jobData.estimated_duration || null,
+        due_date: jobData.due_date || null,
+        images: jobData.images || null,
+        requirements: jobData.requirements || null,
+      };
+
       const { data, error } = await supabase
         .from('jobs')
-        .insert({
-          creator_id: user.id,
-          ...jobData,
-        })
+        .insert(insertData)
         .select()
         .single();
 
@@ -135,7 +204,7 @@ export function useJobs() {
         description: "Ihr Job wurde erfolgreich veröffentlicht!",
       });
 
-      return data;
+      return transformDatabaseJob(data);
     } catch (error: any) {
       toast({
         title: "Fehler",
