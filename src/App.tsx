@@ -5,8 +5,8 @@ import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
-import { AuthProvider } from "@/hooks/useAuth";
-import { ProtectedRoute } from "@/components/ProtectedRoute";
+import { SecureAuthProvider } from "@/hooks/useSecureAuth";
+import { SecureProtectedRoute } from "@/components/SecureProtectedRoute";
 import Index from "./pages/Index";
 import Dashboard from "./pages/Dashboard";
 import Auth from "./pages/Auth";
@@ -26,69 +26,69 @@ const queryClient = new QueryClient();
 const App = () => (
   <StrictMode>
     <QueryClientProvider client={queryClient}>
-      <AuthProvider>
+      <SecureAuthProvider>
         <TooltipProvider>
           <Toaster />
           <Sonner />
           <BrowserRouter>
             <Routes>
               <Route path="/" element={<Auth />} />
+              <Route path="/auth" element={<Auth />} />
               <Route path="/dashboard" element={
-                <ProtectedRoute>
+                <SecureProtectedRoute>
                   <Dashboard />
-                </ProtectedRoute>
+                </SecureProtectedRoute>
               } />
               <Route path="/map" element={
-                <ProtectedRoute>
+                <SecureProtectedRoute>
                   <Map />
-                </ProtectedRoute>
+                </SecureProtectedRoute>
               } />
               <Route path="/jobs" element={
-                <ProtectedRoute>
+                <SecureProtectedRoute>
                   <Jobs />
-                </ProtectedRoute>
+                </SecureProtectedRoute>
               } />
               <Route path="/profile" element={
-                <ProtectedRoute>
+                <SecureProtectedRoute>
                   <Profile />
-                </ProtectedRoute>
+                </SecureProtectedRoute>
               } />
               <Route path="/invite" element={
-                <ProtectedRoute>
+                <SecureProtectedRoute>
                   <Invite />
-                </ProtectedRoute>
+                </SecureProtectedRoute>
               } />
               <Route path="/wallet" element={
-                <ProtectedRoute>
+                <SecureProtectedRoute>
                   <Wallet />
-                </ProtectedRoute>
+                </SecureProtectedRoute>
               } />
               <Route path="/my-jobs" element={
-                <ProtectedRoute>
+                <SecureProtectedRoute>
                   <MyJobs />
-                </ProtectedRoute>
+                </SecureProtectedRoute>
               } />
               <Route path="/ranking" element={
-                <ProtectedRoute>
+                <SecureProtectedRoute>
                   <Ranking />
-                </ProtectedRoute>
+                </SecureProtectedRoute>
               } />
               <Route path="/tutorial" element={
-                <ProtectedRoute>
+                <SecureProtectedRoute>
                   <Tutorial />
-                </ProtectedRoute>
+                </SecureProtectedRoute>
               } />
               <Route path="/tutorial/:categoryId/:lessonId" element={
-                <ProtectedRoute>
+                <SecureProtectedRoute>
                   <TutorialLesson />
-                </ProtectedRoute>
+                </SecureProtectedRoute>
               } />
-              {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
               <Route path="*" element={<NotFound />} />
             </Routes>
           </BrowserRouter>
         </TooltipProvider>
-      </AuthProvider>
+      </SecureAuthProvider>
     </QueryClientProvider>
   </StrictMode>
 );

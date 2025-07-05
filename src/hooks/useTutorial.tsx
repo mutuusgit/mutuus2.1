@@ -1,7 +1,7 @@
 
 import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
-import { useAuth } from './useAuth';
+import { useSecureAuth } from './useSecureAuth';
 import { useToast } from '@/hooks/use-toast';
 
 interface TutorialProgress {
@@ -14,7 +14,7 @@ interface TutorialProgress {
 }
 
 export function useTutorial() {
-  const { user } = useAuth();
+  const { user } = useSecureAuth();
   const { toast } = useToast();
   const [progress, setProgress] = useState<TutorialProgress[]>([]);
   const [loading, setLoading] = useState(true);
