@@ -1,4 +1,3 @@
-
 import { useState, useEffect, createContext, useContext, ReactNode } from 'react';
 import { User, Session } from '@supabase/supabase-js';
 import { supabase } from '@/integrations/supabase/client';
@@ -39,7 +38,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
         if (event === 'SIGNED_IN' && session?.user) {
           // Update user streak on login
-          await supabase.rpc('update_user_streak', { user_id: session.user.id });
+          setTimeout(() => {
+            supabase.rpc('update_user_streak', { user_id: session.user.id });
+          }, 0);
         }
       }
     );
@@ -53,7 +54,13 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         email,
         password,
       });
-      if (error) throw error;
+      if (error) {
+        // Generic error message to prevent information disclosure
+        if (error.message.includes('Invalid login credentials')) {
+          throw new Error('Invalid email or password. Please check your credentials.');
+        }
+        throw new Error('Login failed. Please try again.');
+      }
       toast({
         title: "Erfolgreich angemeldet",
         description: "Willkommen zurück!",
@@ -74,10 +81,16 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         email,
         password,
         options: {
+          emailRedirectTo: `${window.location.origin}/dashboard`,
           data: userData,
         },
       });
-      if (error) throw error;
+      if (error) {
+        if (error.message.includes('User already registered')) {
+          throw new Error('An account with this email already exists.');
+        }
+        throw new Error('Registration failed. Please try again.');
+      }
       toast({
         title: "Registrierung erfolgreich",
         description: "Bitte bestätigen Sie Ihre E-Mail-Adresse.",
