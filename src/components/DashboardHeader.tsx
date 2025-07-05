@@ -1,6 +1,5 @@
-
 import React from 'react';
-import { Settings, FolderOpen, CheckSquare, Gift, MapPin, Users, WalletIcon, Menu, Trophy, Briefcase, BookOpen } from 'lucide-react';
+import { FolderOpen, CheckSquare, Gift, MapPin, Users, WalletIcon, Menu, Trophy, Briefcase, BookOpen } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useNavigate, useLocation } from 'react-router-dom';
 import {
@@ -17,16 +16,24 @@ export const DashboardHeader = () => {
   const location = useLocation();
 
   const navigationItems = [
-    { name: 'Dashboard', href: '/dashboard', icon: FolderOpen, active: location.pathname === '/dashboard' },
-    { name: 'Karte', href: '/map', icon: MapPin, active: location.pathname === '/map' },
-    { name: 'Jobs', href: '/jobs', icon: CheckSquare, active: location.pathname === '/jobs' },
-    { name: 'Meine Jobs', href: '/my-jobs', icon: Briefcase, active: location.pathname === '/my-jobs' },
-    { name: 'Campus', href: '/tutorial', icon: BookOpen, active: location.pathname.startsWith('/tutorial') },
-    { name: 'Ranking', href: '/ranking', icon: Trophy, active: location.pathname === '/ranking' },
-    { name: 'Profil', href: '/profile', icon: Users, active: location.pathname === '/profile' },
-    { name: 'Einladen', href: '/invite', icon: Gift, active: location.pathname === '/invite' },
-    { name: 'Wallet', href: '/wallet', icon: WalletIcon, active: location.pathname === '/wallet' },
+    { name: 'Dashboard', href: '/dashboard', icon: FolderOpen },
+    { name: 'Karte', href: '/map', icon: MapPin },
+    { name: 'Jobs', href: '/jobs', icon: CheckSquare },
+    { name: 'Meine Jobs', href: '/my-jobs', icon: Briefcase },
+    { name: 'Campus', href: '/tutorial', icon: BookOpen },
+    { name: 'Ranking', href: '/ranking', icon: Trophy },
+    { name: 'Profil', href: '/profile', icon: Users },
+    { name: 'Einladen', href: '/invite', icon: Gift },
+    { name: 'Wallet', href: '/wallet', icon: WalletIcon },
   ];
+
+  // Prüfe ob der aktuelle Pfad aktiv ist (bei /tutorial auch StartsWith)
+  const isActive = (href: string) => {
+    if (href === '/tutorial') {
+      return location.pathname.startsWith(href);
+    }
+    return location.pathname === href;
+  };
 
   const handleNavigation = (href: string) => {
     navigate(href);
@@ -39,23 +46,23 @@ export const DashboardHeader = () => {
           {/* Logo */}
           <div className="flex items-center">
             <div className="mr-3 cursor-pointer hover-lift floating glow-blue" onClick={() => navigate('/dashboard')}>
-              <img 
-                src="/lovable-uploads/1a307408-cad9-4e5f-baa9-47e9004e7453.png" 
-                alt="Mutuus" 
+              <img
+                src="/lovable-uploads/1a307408-cad9-4e5f-baa9-47e9004e7453.png"
+                alt="Mutuus"
                 className="h-10 w-auto"
               />
             </div>
           </div>
 
-          {/* Navigation */}
+          {/* Desktop Navigation */}
           <nav className="hidden lg:flex items-center space-x-1">
             {navigationItems.map((item, index) => (
               <Button
                 key={item.name}
-                variant={item.active ? "default" : "ghost"}
+                variant={isActive(item.href) ? "default" : "ghost"}
                 className={`flex items-center px-3 py-2 btn-futuristic hover-lift scroll-slide-right delay-${index * 50} ${
-                  item.active 
-                    ? "bg-blue-600 text-white hover:bg-blue-700 glow-blue text-glow" 
+                  isActive(item.href)
+                    ? "bg-blue-600 text-white hover:bg-blue-700 glow-blue text-glow"
                     : "text-gray-300 hover:text-white hover:bg-gray-800"
                 }`}
                 onClick={() => handleNavigation(item.href)}
@@ -81,7 +88,7 @@ export const DashboardHeader = () => {
                         <NavigationMenuLink
                           key={item.name}
                           className={`flex items-center px-3 py-3 rounded-md text-sm font-medium cursor-pointer btn-futuristic hover-lift scroll-fade-in delay-${index * 50} ${
-                            item.active
+                            isActive(item.href)
                               ? "bg-blue-600 text-white glow-blue"
                               : "text-gray-300 hover:text-white hover:bg-gray-700"
                           }`}
@@ -100,12 +107,16 @@ export const DashboardHeader = () => {
 
           {/* User Balance */}
           <div className="hidden sm:flex items-center space-x-3">
-            <div className="bg-green-600 text-white px-3 py-1 rounded-lg text-sm font-medium hover-lift glow-green pulse-glow cursor-pointer"
-                 onClick={() => navigate('/wallet')}>
+            <div
+              className="bg-green-600 text-white px-3 py-1 rounded-lg text-sm font-medium hover-lift glow-green pulse-glow cursor-pointer"
+              onClick={() => navigate('/wallet')}
+            >
               5.00€
             </div>
-            <div className="bg-orange-600 text-white px-2 py-1 rounded text-sm hover-lift glow-orange floating cursor-pointer"
-                 onClick={() => navigate('/ranking')}>
+            <div
+              className="bg-orange-600 text-white px-2 py-1 rounded text-sm hover-lift glow-orange floating cursor-pointer"
+              onClick={() => navigate('/ranking')}
+            >
               🔥 120
             </div>
           </div>
