@@ -11,7 +11,7 @@ interface AuthContextType {
   session: Session | null;
   loading: boolean;
   signIn: (email: string, password: string) => Promise<void>;
-  signUp: (email: string, password: string, userData?: any) => Promise<void>;
+  signUp: (email: string, password: string, userData?: { first_name?: string; last_name?: string }) => Promise<void>;
   signOut: () => Promise<void>;
   updateProfile: (data: any) => Promise<void>;
   loginAttempts: number;
@@ -133,7 +133,7 @@ export function SecureAuthProvider({ children }: { children: ReactNode }) {
     }
   };
 
-  const signUp = async (email: string, password: string, userData = {}) => {
+  const signUp = async (email: string, password: string, userData: { first_name?: string; last_name?: string } = {}) => {
     try {
       // Validate input
       const validatedData = signUpSchema.parse({
