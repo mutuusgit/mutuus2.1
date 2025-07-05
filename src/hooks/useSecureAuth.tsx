@@ -11,7 +11,7 @@ interface AuthContextType {
   session: Session | null;
   loading: boolean;
   signIn: (email: string, password: string) => Promise<void>;
-  signUp: (email: string, password: string, userData?: { first_name?: string; last_name?: string; }) => Promise<void>;
+  signUp: (email: string, password: string, userData?: any) => Promise<void>;
   signOut: () => Promise<void>;
   updateProfile: (data: any) => Promise<void>;
   loginAttempts: number;
@@ -43,11 +43,8 @@ export function SecureAuthProvider({ children }: { children: ReactNode }) {
         setUser(session?.user ?? null);
         setLoading(false);
 
-        // Log authentication events securely
-        console.log(`Auth event: ${event}`, { 
-          timestamp: new Date().toISOString(),
-          userId: session?.user?.id ? '[REDACTED]' : 'none'
-        });
+        // Log authentication events
+        console.log(`Auth event: ${event}`, { timestamp: new Date().toISOString() });
 
         if (event === 'SIGNED_IN' && session?.user) {
           // Reset login attempts on successful login
@@ -73,7 +70,7 @@ export function SecureAuthProvider({ children }: { children: ReactNode }) {
         }
 
         if (event === 'SIGNED_OUT') {
-          // Log logout securely
+          // Log logout
           console.log('User signed out', { timestamp: new Date().toISOString() });
         }
       }
@@ -92,7 +89,7 @@ export function SecureAuthProvider({ children }: { children: ReactNode }) {
       if (!rateLimiter.isAllowed(clientId, 5, 15 * 60 * 1000)) {
         const remainingTime = Math.ceil(rateLimiter.getRemainingTime(clientId) / (60 * 1000));
         setIsLocked(true);
-        throw new Error(`Zu viele Anmeldeversuche. Versuchen Sie es in ${remainingTime} Minuten erneut.`);
+        throw new Error(`Too many login attempts. Please try again in ${remainingTime} minutes.`);
       }
 
       const { error } = await supabase.auth.signInWithPassword({
@@ -105,11 +102,11 @@ export function SecureAuthProvider({ children }: { children: ReactNode }) {
         
         // Generic error message to prevent information disclosure
         if (error.message.includes('Invalid login credentials')) {
-          throw new Error('Ungültige E-Mail oder Passwort. Bitte überprüfen Sie Ihre Eingaben.');
+          throw new Error('Invalid email or password. Please check your credentials and try again.');
         } else if (error.message.includes('Email not confirmed')) {
-          throw new Error('Bitte bestätigen Sie Ihre E-Mail-Adresse vor der Anmeldung.');
+          throw new Error('Please confirm your email address before signing in.');
         } else {
-          throw new Error('Anmeldung fehlgeschlagen. Bitte versuchen Sie es erneut.');
+          throw new Error('Login failed. Please try again.');
         }
       }
 
@@ -121,7 +118,7 @@ export function SecureAuthProvider({ children }: { children: ReactNode }) {
       if (error instanceof z.ZodError) {
         const firstError = error.errors[0];
         toast({
-          title: "Eingabefehler",
+          title: "Validation Error",
           description: firstError.message,
           variant: "destructive",
         });
@@ -136,7 +133,7 @@ export function SecureAuthProvider({ children }: { children: ReactNode }) {
     }
   };
 
-  const signUp = async (email: string, password: string, userData: { first_name?: string; last_name?: string; } = {}) => {
+  const signUp = async (email: string, password: string, userData = {}) => {
     try {
       // Validate input
       const validatedData = signUpSchema.parse({
@@ -150,7 +147,7 @@ export function SecureAuthProvider({ children }: { children: ReactNode }) {
       // Check rate limiting
       const clientId = `signup_${validatedData.email}`;
       if (!rateLimiter.isAllowed(clientId, 3, 60 * 60 * 1000)) {
-        throw new Error('Zu viele Registrierungsversuche. Versuchen Sie es später erneut.');
+        throw new Error('Too many signup attempts. Please try again later.');
       }
 
       const { error } = await supabase.auth.signUp({
@@ -167,9 +164,9 @@ export function SecureAuthProvider({ children }: { children: ReactNode }) {
 
       if (error) {
         if (error.message.includes('User already registered')) {
-          throw new Error('Ein Konto mit dieser E-Mail existiert bereits. Bitte melden Sie sich stattdessen an.');
+          throw new Error('An account with this email already exists. Please sign in instead.');
         } else {
-          throw new Error('Registrierung fehlgeschlagen. Bitte versuchen Sie es erneut.');
+          throw new Error('Registration failed. Please try again.');
         }
       }
 
@@ -181,7 +178,7 @@ export function SecureAuthProvider({ children }: { children: ReactNode }) {
       if (error instanceof z.ZodError) {
         const firstError = error.errors[0];
         toast({
-          title: "Eingabefehler",
+          title: "Validation Error",
           description: firstError.message,
           variant: "destructive",
         });
@@ -223,21 +220,11 @@ export function SecureAuthProvider({ children }: { children: ReactNode }) {
     try {
       if (!user) throw new Error('Kein Benutzer angemeldet');
       
-      // Validate and sanitize profile data
-      const sanitizedData = Object.keys(data).reduce((acc, key) => {
-        if (typeof data[key] === 'string') {
-          acc[key] = data[key].trim().substring(0, 255); // Limit string length
-        } else {
-          acc[key] = data[key];
-        }
-        return acc;
-      }, {} as any);
-      
       const { error } = await supabase
         .from('profiles')
         .upsert({
           id: user.id,
-          ...sanitizedData,
+          ...data,
           updated_at: new Date().toISOString(),
         });
       

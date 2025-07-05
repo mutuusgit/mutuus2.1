@@ -1,21 +1,12 @@
 
 import React from 'react';
-import { Navigate } from 'react-router-dom';
-import { useSecureAuth } from '@/hooks/useSecureAuth';
+import { useNavigate } from 'react-router-dom';
+import Dashboard from './Dashboard';
 
 const Index = () => {
-  const { user, loading } = useSecureAuth();
-
-  if (loading) {
-    return (
-      <div className="min-h-screen bg-gray-900 flex items-center justify-center">
-        <div className="text-white">Laden...</div>
-      </div>
-    );
-  }
-
-  // Redirect authenticated users to dashboard, others to auth
-  return user ? <Navigate to="/dashboard" replace /> : <Navigate to="/auth" replace />;
+  // For now, we'll show the dashboard directly
+  // In a real app, this would check authentication and redirect accordingly
+  return <Dashboard />;
 };
 
 export default Index;

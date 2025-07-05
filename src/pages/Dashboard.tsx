@@ -7,18 +7,16 @@ import { Badge } from '@/components/ui/badge';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { CreateProjectModal } from '@/components/CreateProjectModal';
 import { DashboardHeader } from '@/components/DashboardHeader';
-import { useSecureAuth } from '@/hooks/useSecureAuth';
+import { useAuth } from '@/hooks/useAuth';
 import { useProfile } from '@/hooks/useProfile';
 import { useTutorial } from '@/hooks/useTutorial';
-import { useSecureJobs } from '@/hooks/useSecureJobs';
-import { useNavigate } from 'react-router-dom';
+import { useJobs } from '@/hooks/useJobs';
 
 const Dashboard = () => {
-  const { user } = useSecureAuth();
+  const { user } = useAuth();
   const { profile } = useProfile();
   const { getTotalXP, getCompletedLessonsCount } = useTutorial();
-  const { jobs, myJobs } = useSecureJobs();
-  const navigate = useNavigate();
+  const { jobs, myJobs } = useJobs();
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
 
   const handleCreateProject = (projectData: any) => {
@@ -145,7 +143,7 @@ const Dashboard = () => {
                   <span className="text-yellow-400 font-medium">{getTotalXP()}</span>
                 </div>
                 <Button 
-                  onClick={() => navigate('/tutorial')} 
+                  onClick={() => window.location.href = '/tutorial'} 
                   className="w-full btn-futuristic glow-blue hover-lift"
                 >
                   Campus besuchen
@@ -184,21 +182,21 @@ const Dashboard = () => {
             <CardContent>
               <div className="space-y-2">
                 <Button 
-                  onClick={() => navigate('/jobs')} 
+                  onClick={() => window.location.href = '/jobs'} 
                   variant="outline" 
                   className="w-full btn-futuristic hover-lift"
                 >
                   Jobs durchsuchen
                 </Button>
                 <Button 
-                  onClick={() => navigate('/map')} 
+                  onClick={() => window.location.href = '/map'} 
                   variant="outline" 
                   className="w-full btn-futuristic hover-lift"
                 >
                   Karte öffnen
                 </Button>
                 <Button 
-                  onClick={() => navigate('/profile')} 
+                  onClick={() => window.location.href = '/profile'} 
                   variant="outline" 
                   className="w-full btn-futuristic hover-lift"
                 >
