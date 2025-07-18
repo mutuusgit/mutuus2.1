@@ -17,11 +17,11 @@ const Invite = () => {
   const { toast } = useToast();
 
   const inviteLink = `https://mutuus.app/invite?ref=user123`;
-  const inviteMessage = `Hey! Schau dir Mutuus an - die App, die lokale Hilfe und Gemeinschaft verbindet. Mit meinem Link bekommst du 10 Bonus-Karma-Punkte! ${inviteLink}`;
+  const inviteMessage = `Hey! Schau dir Mutuus an - die App, die lokale Hilfe und Gemeinschaft verbindet. Mit meinem Link bekommst du 50 Bonus-Karma-Punkte! ${inviteLink}`;
 
   const referrals = [
-    { id: 1, name: 'Anna M.', email: 'anna@email.com', status: 'accepted', joinDate: '2024-01-10', karmaEarned: 10 },
-    { id: 2, name: 'Tom S.', email: 'tom@email.com', status: 'accepted', joinDate: '2024-01-08', karmaEarned: 10 },
+    { id: 1, name: 'Anna M.', email: 'anna@email.com', status: 'accepted', joinDate: '2024-01-10', karmaEarned: 50 },
+    { id: 2, name: 'Tom S.', email: 'tom@email.com', status: 'accepted', joinDate: '2024-01-08', karmaEarned: 50 },
     { id: 3, name: 'Lisa K.', email: 'lisa@email.com', status: 'pending', joinDate: null, karmaEarned: 0 },
   ];
 
@@ -237,7 +237,7 @@ const Invite = () => {
                 <CardContent className="space-y-3">
                   <div className="p-3 bg-green-900/30 border border-green-800 rounded-lg">
                     <div className="flex items-center text-green-400 mb-1">
-                      <span className="font-bold">10 Karma-Punkte</span>
+                      <span className="font-bold">50 Karma-Punkte</span>
                     </div>
                     <p className="text-gray-300 text-sm">für jede erfolgreiche Anmeldung</p>
                   </div>

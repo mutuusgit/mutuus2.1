@@ -1,6 +1,6 @@
 
 import React, { useState } from 'react';
-import { User, Star, MapPin, Phone, Mail, Edit, Trophy, Zap, Euro, Heart, Camera, Shield, CreditCard, CheckCircle, AlertCircle } from 'lucide-react';
+import { User, Star, MapPin, Phone, Mail, Edit, Trophy, Zap, Euro, Heart, Camera } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
@@ -19,13 +19,6 @@ const Profile = () => {
     location: 'Neuss, Deutschland',
     bio: 'Hilfe gerne bei Gartenarbeiten und technischen Problemen. Verfügbar an Wochenenden.',
     avatar: null
-  });
-
-  const [verificationData, setVerificationData] = useState({
-    phoneVerified: false,
-    bankAccountVerified: false,
-    phoneNumber: '+49 123 456789',
-    bankAccount: ''
   });
 
   // Mock data
@@ -90,25 +83,6 @@ const Profile = () => {
       ...prev,
       [field]: value
     }));
-  };
-
-  const handleVerificationChange = (field: string, value: string) => {
-    setVerificationData(prev => ({
-      ...prev,
-      [field]: value
-    }));
-  };
-
-  const handlePhoneVerification = () => {
-    // Hier würde die echte Telefon-Verifizierung stattfinden
-    console.log('Telefon-Verifizierung gestartet für:', verificationData.phoneNumber);
-    setVerificationData(prev => ({ ...prev, phoneVerified: true }));
-  };
-
-  const handleBankVerification = () => {
-    // Hier würde die echte Bank-Verifizierung stattfinden
-    console.log('Bank-Verifizierung gestartet für:', verificationData.bankAccount);
-    setVerificationData(prev => ({ ...prev, bankAccountVerified: true }));
   };
 
   return (
@@ -263,12 +237,11 @@ const Profile = () => {
           {/* Right Column - Tabs */}
           <div className="lg:col-span-2">
             <Tabs defaultValue="jobs" className="w-full">
-              <TabsList className="grid w-full grid-cols-5 bg-gray-800 border-gray-700">
+              <TabsList className="grid w-full grid-cols-4 bg-gray-800 border-gray-700">
                 <TabsTrigger value="jobs" className="text-gray-300">Jobs</TabsTrigger>
                 <TabsTrigger value="achievements" className="text-gray-300">Erfolge</TabsTrigger>
                 <TabsTrigger value="reviews" className="text-gray-300">Bewertungen</TabsTrigger>
                 <TabsTrigger value="favorites" className="text-gray-300">Favoriten</TabsTrigger>
-                <TabsTrigger value="verification" className="text-gray-300">Verifizierung</TabsTrigger>
               </TabsList>
 
               <TabsContent value="jobs" className="space-y-4">
@@ -389,113 +362,6 @@ const Profile = () => {
                         </div>
                       </div>
                     ))}
-                  </CardContent>
-                </Card>
-              </TabsContent>
-
-              <TabsContent value="verification" className="space-y-4">
-                <Card className="bg-gray-800 border-gray-700">
-                  <CardHeader>
-                    <CardTitle className="text-white flex items-center">
-                      <Shield className="w-5 h-5 mr-2" />
-                      Verifizierung
-                    </CardTitle>
-                    <p className="text-gray-400 text-sm">
-                      Verifizieren Sie Ihre Daten, um Vertrauen zu schaffen und höhere Limits zu erhalten.
-                    </p>
-                  </CardHeader>
-                  <CardContent className="space-y-6">
-                    {/* Telefon-Verifizierung */}
-                    <div className="p-4 bg-gray-700 rounded-lg">
-                      <div className="flex items-center justify-between mb-3">
-                        <div className="flex items-center">
-                          <Phone className="w-5 h-5 text-blue-400 mr-2" />
-                          <h3 className="text-white font-medium">Telefonnummer</h3>
-                        </div>
-                        {verificationData.phoneVerified ? (
-                          <div className="flex items-center text-green-400">
-                            <CheckCircle className="w-5 h-5 mr-1" />
-                            <span className="text-sm">Verifiziert</span>
-                          </div>
-                        ) : (
-                          <div className="flex items-center text-orange-400">
-                            <AlertCircle className="w-5 h-5 mr-1" />
-                            <span className="text-sm">Nicht verifiziert</span>
-                          </div>
-                        )}
-                      </div>
-                      <p className="text-gray-400 text-sm mb-3">
-                        Verifizieren Sie Ihre Telefonnummer, um SMS-Benachrichtigungen zu erhalten.
-                      </p>
-                      <div className="flex gap-2">
-                        <Input
-                          value={verificationData.phoneNumber}
-                          onChange={(e) => handleVerificationChange('phoneNumber', e.target.value)}
-                          placeholder="Telefonnummer"
-                          className="bg-gray-600 border-gray-500 text-white"
-                          disabled={verificationData.phoneVerified}
-                        />
-                        <Button 
-                          onClick={handlePhoneVerification}
-                          disabled={verificationData.phoneVerified}
-                          className="bg-blue-600 hover:bg-blue-700"
-                        >
-                          {verificationData.phoneVerified ? 'Verifiziert' : 'Verifizieren'}
-                        </Button>
-                      </div>
-                    </div>
-
-                    {/* Bank-Verifizierung */}
-                    <div className="p-4 bg-gray-700 rounded-lg">
-                      <div className="flex items-center justify-between mb-3">
-                        <div className="flex items-center">
-                          <CreditCard className="w-5 h-5 text-green-400 mr-2" />
-                          <h3 className="text-white font-medium">Bankkonto</h3>
-                        </div>
-                        {verificationData.bankAccountVerified ? (
-                          <div className="flex items-center text-green-400">
-                            <CheckCircle className="w-5 h-5 mr-1" />
-                            <span className="text-sm">Verifiziert</span>
-                          </div>
-                        ) : (
-                          <div className="flex items-center text-orange-400">
-                            <AlertCircle className="w-5 h-5 mr-1" />
-                            <span className="text-sm">Nicht verifiziert</span>
-                          </div>
-                        )}
-                      </div>
-                      <p className="text-gray-400 text-sm mb-3">
-                        Verifizieren Sie Ihr Bankkonto für sichere Zahlungen und höhere Limits.
-                      </p>
-                      <div className="flex gap-2">
-                        <Input
-                          value={verificationData.bankAccount}
-                          onChange={(e) => handleVerificationChange('bankAccount', e.target.value)}
-                          placeholder="IBAN (DE12 3456 7890 1234 5678 90)"
-                          className="bg-gray-600 border-gray-500 text-white"
-                          disabled={verificationData.bankAccountVerified}
-                        />
-                        <Button 
-                          onClick={handleBankVerification}
-                          disabled={verificationData.bankAccountVerified || !verificationData.bankAccount}
-                          className="bg-green-600 hover:bg-green-700"
-                        >
-                          {verificationData.bankAccountVerified ? 'Verifiziert' : 'Verifizieren'}
-                        </Button>
-                      </div>
-                    </div>
-
-                    {/* Verifizierungs-Vorteile */}
-                    <div className="p-4 bg-blue-900/20 border border-blue-800 rounded-lg">
-                      <h3 className="text-white font-medium mb-2">Vorteile der Verifizierung</h3>
-                      <ul className="text-gray-400 text-sm space-y-1">
-                        <li>• Höhere Vertrauenswürdigkeit bei anderen Nutzern</li>
-                        <li>• Höhere Limits für Transaktionen</li>
-                        <li>• Schnellere Zahlungsabwicklung</li>
-                        <li>• Zugang zu Premium-Features</li>
-                        <li>• Bevorzugte Behandlung bei Bewerbungen</li>
-                      </ul>
-                    </div>
                   </CardContent>
                 </Card>
               </TabsContent>

@@ -10,15 +10,14 @@ interface ProtectedRouteProps {
 }
 
 export function ProtectedRoute({ children }: ProtectedRouteProps) {
-  const { user, session, loading } = useAuth();
+  const { user, loading } = useAuth();
   const navigate = useNavigate();
 
   useEffect(() => {
-    if (!loading && (!user || !session)) {
-      console.log('Redirecting to login - user:', user, 'session:', session);
+    if (!loading && !user) {
       navigate('/');
     }
-  }, [user, session, loading, navigate]);
+  }, [user, loading, navigate]);
 
   if (loading) {
     return (
