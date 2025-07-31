@@ -25,28 +25,42 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   useEffect(() => {
     let mounted = true;
     
-    // Set up auth state listener FIRST
-    const { data: { subscription } } = supabase.auth.onAuthStateChange(
-      async (event, session) => {
-        console.log('🔐 Auth state changed:', event, session?.user?.id, session?.expires_at);
+    // Get initial session first
+    const initializeAuth = async () => {
+      try {
+        const { data: { session }, error } = await supabase.auth.getSession();
         
-        if (!mounted) {
-          console.log('⚠️ Component unmounted, ignoring auth state change');
-          return;
+        if (error) {
+          console.error('❌ Error getting initial session:', error);
         }
+        
+        if (mounted) {
+          setSession(session);
+          setUser(session?.user ?? null);
+          setLoading(false);
+          console.log('📋 Initial session:', session?.user?.email || 'No user');
+        }
+      } catch (error) {
+        console.error('💥 Session initialization error:', error);
+        if (mounted) {
+          setLoading(false);
+        }
+      }
+    };
+
+    // Set up auth state listener
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(
+      (event, session) => {
+        console.log('🔐 Auth state changed:', event, session?.user?.email || 'No user');
+        
+        if (!mounted) return;
         
         setSession(session);
         setUser(session?.user ?? null);
         setLoading(false);
 
         if (event === 'SIGNED_IN' && session?.user) {
-          console.log('✅ User signed in successfully:', session.user.email);
-          // Update user streak on login
-          setTimeout(() => {
-            if (mounted) {
-              supabase.rpc('update_user_streak', { user_id: session.user.id });
-            }
-          }, 100);
+          console.log('✅ User signed in:', session.user.email);
         }
 
         if (event === 'SIGNED_OUT') {
@@ -55,30 +69,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       }
     );
 
-    // THEN check for existing session
-    const getInitialSession = async () => {
-      try {
-        console.log('🔍 Getting initial session...');
-        const { data: { session }, error } = await supabase.auth.getSession();
-        if (error) {
-          console.error('❌ Error getting session:', error);
-        } else {
-          console.log('📋 Initial session loaded:', session?.user?.id, session?.expires_at);
-          if (mounted) {
-            setSession(session);
-            setUser(session?.user ?? null);
-            setLoading(false);
-          }
-        }
-      } catch (error) {
-        console.error('💥 Session error:', error);
-        if (mounted) {
-          setLoading(false);
-        }
-      }
-    };
-
-    getInitialSession();
+    initializeAuth();
 
     return () => {
       mounted = false;
