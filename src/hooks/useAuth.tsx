@@ -22,87 +22,56 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [loading, setLoading] = useState(true);
   const { toast } = useToast();
 
-  useEffect(() => {
-    let mounted = true;
-    
-    // Get initial session and set up auth listener
-    const initializeAuth = async () => {
-      try {
-        // Get current session
-        const { data: { session: initialSession }, error: sessionError } = await supabase.auth.getSession();
-        
-        if (sessionError) {
-          console.error('❌ Error getting initial session:', sessionError);
-        } else {
-          console.log('📋 Initial session loaded:', initialSession?.user?.email || 'No user');
-        }
-        
-        if (mounted) {
-          setSession(initialSession);
-          setUser(initialSession?.user ?? null);
-          setLoading(false);
-        }
-      } catch (error) {
-        console.error('💥 Session initialization error:', error);
-        if (mounted) {
-          setSession(null);
-          setUser(null);
-          setLoading(false);
-        }
-      }
-    };
+ useEffect(() => {
+  let mounted = true;
 
-    // Set up real-time auth state listener
-    const { data: { subscription } } = supabase.auth.onAuthStateChange(
-      async (event, session) => {
-        console.log('🔐 Auth state changed:', event, session?.user?.email || 'No user');
-        
-        if (!mounted) return;
-        
-        setSession(session);
-        setUser(session?.user ?? null);
+  const { data: { subscription } } = supabase.auth.onAuthStateChange(
+    async (event, session) => {
+      console.log('🔐 Auth state changed:', event, session?.user?.email || 'No user');
 
-        if (event === 'SIGNED_IN' && session?.user) {
-          console.log('✅ User signed in:', session.user.email);
-          
-          // Create or update user profile
-          try {
-            const { error: profileError } = await supabase
-              .from('profiles')
-              .upsert({
-                id: session.user.id,
-                first_name: session.user.user_metadata?.first_name || null,
-                last_name: session.user.user_metadata?.last_name || null,
-                avatar_url: session.user.user_metadata?.avatar_url || null,
-                updated_at: new Date().toISOString(),
-              }, {
-                onConflict: 'id'
-              });
-            
-            if (profileError) {
-              console.error('Error creating/updating profile:', profileError);
-            }
-          } catch (error) {
-            console.error('Profile creation error:', error);
+      if (!mounted) return;
+
+      setSession(session);
+      setUser(session?.user ?? null);
+
+      if (event === 'SIGNED_IN' && session?.user) {
+        console.log('✅ User signed in:', session.user.email);
+
+        try {
+          const { error: profileError } = await supabase
+            .from('profiles')
+            .upsert({
+              id: session.user.id,
+              first_name: session.user.user_metadata?.first_name || null,
+              last_name: session.user.user_metadata?.last_name || null,
+              avatar_url: session.user.user_metadata?.avatar_url || null,
+              updated_at: new Date().toISOString(),
+            }, {
+              onConflict: 'id'
+            });
+
+          if (profileError) {
+            console.error('Error creating/updating profile:', profileError);
           }
+        } catch (error) {
+          console.error('Profile creation error:', error);
         }
-
-        if (event === 'SIGNED_OUT') {
-          console.log('🚪 User signed out');
-        }
-        
-        // Always set loading to false after auth state change
-        setLoading(false);
       }
-    );
 
-    initializeAuth();
+      if (event === 'SIGNED_OUT') {
+        console.log('🚪 User signed out');
+      }
 
-    return () => {
-      mounted = false;
-      subscription.unsubscribe();
-    };
-  }, []);
+      setLoading(false);
+    }
+  );
+
+  return () => {
+    mounted = false;
+    subscription.unsubscribe();
+  };
+}, []);
+
 
   const signIn = async (email: string, password: string) => {
     try {
