@@ -19,8 +19,6 @@ export function ProtectedRoute({ children }: ProtectedRouteProps) {
     if (!loading && (!user || !session)) {
       console.log('🔄 Redirecting to login - user:', user?.id, 'session exists:', !!session);
       navigate('/', { replace: true });
-    } else if (!loading && user && session) {
-      console.log('✅ User authenticated, staying on protected route');
     }
   }, [user, session, loading, navigate]);
 
@@ -37,7 +35,7 @@ export function ProtectedRoute({ children }: ProtectedRouteProps) {
     );
   }
 
-  if (!user) {
+  if (!user || !session) {
     return null;
   }
 

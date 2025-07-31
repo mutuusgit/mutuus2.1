@@ -7,14 +7,16 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { useAuth } from '@/hooks/useAuth';
-import { Eye, EyeOff, Mail, Lock, User } from 'lucide-react';
+import { Eye, EyeOff, Mail, Lock, User, Loader2 } from 'lucide-react';
 
 const Auth = () => {
   const navigate = useNavigate();
   const { user, signIn, signUp, resetPassword, loading } = useAuth();
   const [isLoading, setIsLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [showForgotPassword, setShowForgotPassword] = useState(false);
+  const [activeTab, setActiveTab] = useState('signin');
   const [formData, setFormData] = useState({
     email: '',
     password: '',
@@ -22,6 +24,7 @@ const Auth = () => {
     lastName: '',
     confirmPassword: '',
   });
+  const [errors, setErrors] = useState<Record<string, string>>({});
 
   useEffect(() => {
     console.log('👤 Auth page - loading:', loading, 'user:', user?.id);
@@ -33,14 +36,61 @@ const Auth = () => {
   }, [user, loading, navigate]);
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const { name, value } = e.target;
     setFormData(prev => ({
       ...prev,
-      [e.target.name]: e.target.value
+      [name]: value
     }));
+    
+    // Clear error when user starts typing
+    if (errors[name]) {
+      setErrors(prev => ({
+        ...prev,
+        [name]: ''
+      }));
+    }
+  };
+
+  const validateForm = (isSignUp: boolean = false) => {
+    const newErrors: Record<string, string> = {};
+    
+    if (!formData.email) {
+      newErrors.email = 'E-Mail ist erforderlich';
+    } else if (!/\S+@\S+\.\S+/.test(formData.email)) {
+      newErrors.email = 'Ungültige E-Mail-Adresse';
+    }
+    
+    if (!formData.password) {
+      newErrors.password = 'Passwort ist erforderlich';
+    } else if (isSignUp && formData.password.length < 6) {
+      newErrors.password = 'Passwort muss mindestens 6 Zeichen lang sein';
+    }
+    
+    if (isSignUp) {
+      if (!formData.firstName.trim()) {
+        newErrors.firstName = 'Vorname ist erforderlich';
+      }
+      if (!formData.lastName.trim()) {
+        newErrors.lastName = 'Nachname ist erforderlich';
+      }
+      if (!formData.confirmPassword) {
+        newErrors.confirmPassword = 'Passwort bestätigen ist erforderlich';
+      } else if (formData.password !== formData.confirmPassword) {
+        newErrors.confirmPassword = 'Passwörter stimmen nicht überein';
+      }
+    }
+    
+    setErrors(newErrors);
+    return Object.keys(newErrors).length === 0;
   };
 
   const handleSignIn = async (e: React.FormEvent) => {
     e.preventDefault();
+    
+    if (!validateForm(false)) {
+      return;
+    }
+    
     console.log('📝 Form submitted for sign in');
     setIsLoading(true);
     try {
@@ -55,16 +105,27 @@ const Auth = () => {
 
   const handleSignUp = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (formData.password !== formData.confirmPassword) {
-      alert('Passwörter stimmen nicht überein');
+    
+    if (!validateForm(true)) {
       return;
     }
+    
     setIsLoading(true);
     try {
       await signUp(formData.email, formData.password, {
         first_name: formData.firstName,
         last_name: formData.lastName,
       });
+      
+      // Switch to sign in tab after successful registration
+      setActiveTab('signin');
+      setFormData(prev => ({
+        ...prev,
+        password: '',
+        confirmPassword: '',
+        firstName: '',
+        lastName: ''
+      }));
     } catch (error) {
       console.error('Sign up error:', error);
     } finally {
@@ -75,7 +136,7 @@ const Auth = () => {
   const handleForgotPassword = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!formData.email) {
-      alert('Bitte geben Sie Ihre E-Mail-Adresse ein');
+      setErrors({ email: 'Bitte geben Sie Ihre E-Mail-Adresse ein' });
       return;
     }
     setIsLoading(true);
@@ -92,7 +153,12 @@ const Auth = () => {
   if (loading) {
     return (
       <div className="min-h-screen bg-gray-900 flex items-center justify-center">
-        <div className="animate-spin rounded-full h-8 w-8 border-t-2 border-blue-400"></div>
+        <Card className="bg-gray-800 border-gray-700">
+          <CardContent className="p-6 flex items-center space-x-4">
+            <Loader2 className="w-6 h-6 animate-spin text-blue-400" />
+            <span className="text-white">Lädt...</span>
+          </CardContent>
+        </Card>
       </div>
     );
   }
@@ -134,12 +200,17 @@ const Auth = () => {
                         name="email"
                         type="email"
                         placeholder="ihre@email.de"
-                        className="pl-10 bg-gray-700 border-gray-600 text-white"
+                        className={`pl-10 bg-gray-700 border-gray-600 text-white ${
+                          errors.email ? 'border-red-500' : ''
+                        }`}
                         value={formData.email}
                         onChange={handleInputChange}
                         required
                       />
                     </div>
+                    {errors.email && (
+                      <p className="text-red-400 text-sm">{errors.email}</p>
+                    )}
                   </div>
                   <div className="space-y-2">
                     <Button 
@@ -147,7 +218,14 @@ const Auth = () => {
                       className="w-full btn-futuristic glow-blue hover-lift"
                       disabled={isLoading}
                     >
-                      {isLoading ? 'Wird gesendet...' : 'Reset-Link senden'}
+                      {isLoading ? (
+                        <>
+                          <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                          Wird gesendet...
+                        </>
+                      ) : (
+                        'Reset-Link senden'
+                      )}
                     </Button>
                     <Button 
                       type="button"
@@ -161,7 +239,7 @@ const Auth = () => {
                 </form>
               </div>
             ) : (
-              <Tabs defaultValue="signin" className="w-full">
+              <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
                 <TabsList className="grid w-full grid-cols-2 bg-gray-700">
                   <TabsTrigger value="signin" className="text-white">Anmelden</TabsTrigger>
                   <TabsTrigger value="signup" className="text-white">Registrieren</TabsTrigger>
@@ -178,12 +256,17 @@ const Auth = () => {
                           name="email"
                           type="email"
                           placeholder="ihre@email.de"
-                          className="pl-10 bg-gray-700 border-gray-600 text-white"
+                          className={`pl-10 bg-gray-700 border-gray-600 text-white ${
+                            errors.email ? 'border-red-500' : ''
+                          }`}
                           value={formData.email}
                           onChange={handleInputChange}
                           required
                         />
                       </div>
+                      {errors.email && (
+                        <p className="text-red-400 text-sm">{errors.email}</p>
+                      )}
                     </div>
 
                     <div className="space-y-2">
@@ -195,7 +278,9 @@ const Auth = () => {
                           name="password"
                           type={showPassword ? "text" : "password"}
                           placeholder="Ihr Passwort"
-                          className="pl-10 pr-10 bg-gray-700 border-gray-600 text-white"
+                          className={`pl-10 pr-10 bg-gray-700 border-gray-600 text-white ${
+                            errors.password ? 'border-red-500' : ''
+                          }`}
                           value={formData.password}
                           onChange={handleInputChange}
                           required
@@ -208,6 +293,9 @@ const Auth = () => {
                           {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
                         </button>
                       </div>
+                      {errors.password && (
+                        <p className="text-red-400 text-sm">{errors.password}</p>
+                      )}
                     </div>
 
                     <div className="space-y-2">
@@ -216,7 +304,14 @@ const Auth = () => {
                         className="w-full btn-futuristic glow-blue hover-lift"
                         disabled={isLoading}
                       >
-                        {isLoading ? 'Wird angemeldet...' : 'Anmelden'}
+                        {isLoading ? (
+                          <>
+                            <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                            Wird angemeldet...
+                          </>
+                        ) : (
+                          'Anmelden'
+                        )}
                       </Button>
                       <button
                         type="button"
@@ -240,12 +335,17 @@ const Auth = () => {
                           id="firstName"
                           name="firstName"
                           placeholder="Max"
-                          className="pl-10 bg-gray-700 border-gray-600 text-white"
+                          className={`pl-10 bg-gray-700 border-gray-600 text-white ${
+                            errors.firstName ? 'border-red-500' : ''
+                          }`}
                           value={formData.firstName}
                           onChange={handleInputChange}
                           required
                         />
                       </div>
+                      {errors.firstName && (
+                        <p className="text-red-400 text-sm">{errors.firstName}</p>
+                      )}
                     </div>
 
                     <div className="space-y-2">
@@ -254,11 +354,16 @@ const Auth = () => {
                         id="lastName"
                         name="lastName"
                         placeholder="Mustermann"
-                        className="bg-gray-700 border-gray-600 text-white"
+                        className={`bg-gray-700 border-gray-600 text-white ${
+                          errors.lastName ? 'border-red-500' : ''
+                        }`}
                         value={formData.lastName}
                         onChange={handleInputChange}
                         required
                       />
+                      {errors.lastName && (
+                        <p className="text-red-400 text-sm">{errors.lastName}</p>
+                      )}
                     </div>
                   </div>
 
@@ -271,12 +376,17 @@ const Auth = () => {
                         name="email"
                         type="email"
                         placeholder="ihre@email.de"
-                        className="pl-10 bg-gray-700 border-gray-600 text-white"
+                        className={`pl-10 bg-gray-700 border-gray-600 text-white ${
+                          errors.email ? 'border-red-500' : ''
+                        }`}
                         value={formData.email}
                         onChange={handleInputChange}
                         required
                       />
                     </div>
+                    {errors.email && (
+                      <p className="text-red-400 text-sm">{errors.email}</p>
+                    )}
                   </div>
 
                   <div className="space-y-2">
@@ -288,7 +398,9 @@ const Auth = () => {
                         name="password"
                         type={showPassword ? "text" : "password"}
                         placeholder="Mindestens 6 Zeichen"
-                        className="pl-10 pr-10 bg-gray-700 border-gray-600 text-white"
+                        className={`pl-10 pr-10 bg-gray-700 border-gray-600 text-white ${
+                          errors.password ? 'border-red-500' : ''
+                        }`}
                         value={formData.password}
                         onChange={handleInputChange}
                         required
@@ -302,6 +414,9 @@ const Auth = () => {
                         {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
                       </button>
                     </div>
+                    {errors.password && (
+                      <p className="text-red-400 text-sm">{errors.password}</p>
+                    )}
                   </div>
 
                   <div className="space-y-2">
@@ -311,14 +426,26 @@ const Auth = () => {
                       <Input
                         id="confirmPassword"
                         name="confirmPassword"
-                        type="password"
+                        type={showConfirmPassword ? "text" : "password"}
                         placeholder="Passwort wiederholen"
-                        className="pl-10 bg-gray-700 border-gray-600 text-white"
+                        className={`pl-10 pr-10 bg-gray-700 border-gray-600 text-white ${
+                          errors.confirmPassword ? 'border-red-500' : ''
+                        }`}
                         value={formData.confirmPassword}
                         onChange={handleInputChange}
                         required
                       />
+                      <button
+                        type="button"
+                        onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                        className="absolute right-3 top-3 text-gray-400 hover:text-white"
+                      >
+                        {showConfirmPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                      </button>
                     </div>
+                    {errors.confirmPassword && (
+                      <p className="text-red-400 text-sm">{errors.confirmPassword}</p>
+                    )}
                   </div>
 
                   <Button 
@@ -326,7 +453,14 @@ const Auth = () => {
                     className="w-full btn-futuristic glow-green hover-lift"
                     disabled={isLoading}
                   >
-                    {isLoading ? 'Wird registriert...' : 'Registrieren'}
+                    {isLoading ? (
+                      <>
+                        <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                        Wird registriert...
+                      </>
+                    ) : (
+                      'Registrieren'
+                    )}
                   </Button>
                 </form>
               </TabsContent>

@@ -25,47 +25,74 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   useEffect(() => {
     let mounted = true;
     
-    // Get initial session first
+    // Get initial session and set up auth listener
     const initializeAuth = async () => {
       try {
-        const { data: { session }, error } = await supabase.auth.getSession();
+        // Get current session
+        const { data: { session: initialSession }, error: sessionError } = await supabase.auth.getSession();
         
-        if (error) {
-          console.error('❌ Error getting initial session:', error);
+        if (sessionError) {
+          console.error('❌ Error getting initial session:', sessionError);
+        } else {
+          console.log('📋 Initial session loaded:', initialSession?.user?.email || 'No user');
         }
         
         if (mounted) {
-          setSession(session);
-          setUser(session?.user ?? null);
+          setSession(initialSession);
+          setUser(initialSession?.user ?? null);
           setLoading(false);
-          console.log('📋 Initial session:', session?.user?.email || 'No user');
         }
       } catch (error) {
         console.error('💥 Session initialization error:', error);
         if (mounted) {
+          setSession(null);
+          setUser(null);
           setLoading(false);
         }
       }
     };
 
-    // Set up auth state listener
+    // Set up real-time auth state listener
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
-      (event, session) => {
+      async (event, session) => {
         console.log('🔐 Auth state changed:', event, session?.user?.email || 'No user');
         
         if (!mounted) return;
         
         setSession(session);
         setUser(session?.user ?? null);
-        setLoading(false);
 
         if (event === 'SIGNED_IN' && session?.user) {
           console.log('✅ User signed in:', session.user.email);
+          
+          // Create or update user profile
+          try {
+            const { error: profileError } = await supabase
+              .from('profiles')
+              .upsert({
+                id: session.user.id,
+                first_name: session.user.user_metadata?.first_name || null,
+                last_name: session.user.user_metadata?.last_name || null,
+                avatar_url: session.user.user_metadata?.avatar_url || null,
+                updated_at: new Date().toISOString(),
+              }, {
+                onConflict: 'id'
+              });
+            
+            if (profileError) {
+              console.error('Error creating/updating profile:', profileError);
+            }
+          } catch (error) {
+            console.error('Profile creation error:', error);
+          }
         }
 
         if (event === 'SIGNED_OUT') {
           console.log('🚪 User signed out');
         }
+        
+        // Always set loading to false after auth state change
+        setLoading(false);
       }
     );
 
@@ -79,22 +106,33 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   const signIn = async (email: string, password: string) => {
     try {
+      setLoading(true);
       console.log('🔑 Attempting sign in for:', email);
+      
+      // Basic validation
+      if (!email || !password) {
+        throw new Error('E-Mail und Passwort sind erforderlich');
+      }
+      
       const { data, error } = await supabase.auth.signInWithPassword({
-        email,
-        password,
+        email: email.trim().toLowerCase(),
+        password: password,
       });
       
       console.log('📞 Sign in response:', data, error);
       
       if (error) {
         console.error('❌ Sign in error:', error);
-        // Generic error message to prevent information disclosure
         if (error.message.includes('Invalid login credentials')) {
-          throw new Error('Invalid email or password. Please check your credentials.');
+          throw new Error('Ungültige E-Mail oder Passwort. Bitte überprüfen Sie Ihre Eingaben.');
+        } else if (error.message.includes('Email not confirmed')) {
+          throw new Error('Bitte bestätigen Sie Ihre E-Mail-Adresse vor der Anmeldung.');
+        } else if (error.message.includes('Too many requests')) {
+          throw new Error('Zu viele Anmeldeversuche. Bitte warten Sie einen Moment.');
         }
-        throw new Error('Login failed. Please try again.');
+        throw new Error('Anmeldung fehlgeschlagen. Bitte versuchen Sie es erneut.');
       }
+      
       toast({
         title: "Erfolgreich angemeldet",
         description: "Willkommen zurück!",
@@ -106,28 +144,48 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         variant: "destructive",
       });
       throw error;
+    } finally {
+      setLoading(false);
     }
   };
 
   const signUp = async (email: string, password: string, userData = {}) => {
     try {
+      setLoading(true);
+      console.log('📝 Attempting sign up for:', email);
+      
+      // Basic validation
+      if (!email || !password) {
+        throw new Error('E-Mail und Passwort sind erforderlich');
+      }
+      
+      if (password.length < 6) {
+        throw new Error('Passwort muss mindestens 6 Zeichen lang sein');
+      }
+      
       const { error } = await supabase.auth.signUp({
-        email,
+        email: email.trim().toLowerCase(),
         password,
         options: {
-          emailRedirectTo: `${window.location.origin}/dashboard`,
           data: userData,
         },
       });
+      
       if (error) {
+        console.error('❌ Sign up error:', error);
         if (error.message.includes('User already registered')) {
-          throw new Error('An account with this email already exists.');
+          throw new Error('Ein Konto mit dieser E-Mail-Adresse existiert bereits.');
+        } else if (error.message.includes('Password should be at least')) {
+          throw new Error('Passwort muss mindestens 6 Zeichen lang sein.');
+        } else if (error.message.includes('Unable to validate email address')) {
+          throw new Error('Ungültige E-Mail-Adresse.');
         }
-        throw new Error('Registration failed. Please try again.');
+        throw new Error('Registrierung fehlgeschlagen. Bitte versuchen Sie es erneut.');
       }
+      
       toast({
         title: "Registrierung erfolgreich",
-        description: "Bitte bestätigen Sie Ihre E-Mail-Adresse.",
+        description: "Sie können sich jetzt anmelden!",
       });
     } catch (error: any) {
       toast({
@@ -136,11 +194,14 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         variant: "destructive",
       });
       throw error;
+    } finally {
+      setLoading(false);
     }
   };
 
   const signOut = async () => {
     try {
+      setLoading(true);
       const { error } = await supabase.auth.signOut();
       if (error) throw error;
       toast({
@@ -154,11 +215,17 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         variant: "destructive",
       });
       throw error;
+    } finally {
+      setLoading(false);
     }
   };
 
   const resetPassword = async (email: string) => {
     try {
+      if (!email) {
+        throw new Error('E-Mail-Adresse ist erforderlich');
+      }
+      
       const { error } = await supabase.auth.resetPasswordForEmail(email, {
         redirectTo: `${window.location.origin}/`,
       });
