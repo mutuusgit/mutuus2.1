@@ -28,15 +28,19 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     // Set up auth state listener FIRST
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       async (event, session) => {
-        console.log('Auth state changed:', event, session);
+        console.log('🔐 Auth state changed:', event, session?.user?.id, session?.expires_at);
         
-        if (!mounted) return;
+        if (!mounted) {
+          console.log('⚠️ Component unmounted, ignoring auth state change');
+          return;
+        }
         
         setSession(session);
         setUser(session?.user ?? null);
         setLoading(false);
 
         if (event === 'SIGNED_IN' && session?.user) {
+          console.log('✅ User signed in successfully:', session.user.email);
           // Update user streak on login
           setTimeout(() => {
             if (mounted) {
@@ -44,17 +48,22 @@ export function AuthProvider({ children }: { children: ReactNode }) {
             }
           }, 100);
         }
+
+        if (event === 'SIGNED_OUT') {
+          console.log('🚪 User signed out');
+        }
       }
     );
 
     // THEN check for existing session
     const getInitialSession = async () => {
       try {
+        console.log('🔍 Getting initial session...');
         const { data: { session }, error } = await supabase.auth.getSession();
         if (error) {
-          console.error('Error getting session:', error);
+          console.error('❌ Error getting session:', error);
         } else {
-          console.log('Initial session:', session);
+          console.log('📋 Initial session loaded:', session?.user?.id, session?.expires_at);
           if (mounted) {
             setSession(session);
             setUser(session?.user ?? null);
@@ -62,7 +71,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
           }
         }
       } catch (error) {
-        console.error('Session error:', error);
+        console.error('💥 Session error:', error);
         if (mounted) {
           setLoading(false);
         }
@@ -79,11 +88,16 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   const signIn = async (email: string, password: string) => {
     try {
-      const { error } = await supabase.auth.signInWithPassword({
+      console.log('🔑 Attempting sign in for:', email);
+      const { data, error } = await supabase.auth.signInWithPassword({
         email,
         password,
       });
+      
+      console.log('📞 Sign in response:', data, error);
+      
       if (error) {
+        console.error('❌ Sign in error:', error);
         // Generic error message to prevent information disclosure
         if (error.message.includes('Invalid login credentials')) {
           throw new Error('Invalid email or password. Please check your credentials.');

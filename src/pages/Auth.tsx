@@ -24,8 +24,11 @@ const Auth = () => {
   });
 
   useEffect(() => {
+    console.log('👤 Auth page - loading:', loading, 'user:', user?.id);
+    
     if (user && !loading) {
-      navigate('/dashboard');
+      console.log('🎯 User authenticated, redirecting to dashboard');
+      navigate('/dashboard', { replace: true });
     }
   }, [user, loading, navigate]);
 
@@ -38,11 +41,13 @@ const Auth = () => {
 
   const handleSignIn = async (e: React.FormEvent) => {
     e.preventDefault();
+    console.log('📝 Form submitted for sign in');
     setIsLoading(true);
     try {
       await signIn(formData.email, formData.password);
+      console.log('✅ Sign in completed successfully');
     } catch (error) {
-      console.error('Sign in error:', error);
+      console.error('❌ Sign in error:', error);
     } finally {
       setIsLoading(false);
     }

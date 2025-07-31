@@ -14,9 +14,13 @@ export function ProtectedRoute({ children }: ProtectedRouteProps) {
   const navigate = useNavigate();
 
   useEffect(() => {
+    console.log('🛡️ ProtectedRoute check - loading:', loading, 'user:', user?.id, 'session:', !!session);
+    
     if (!loading && (!user || !session)) {
-      console.log('Redirecting to login - user:', user, 'session:', session);
-      navigate('/');
+      console.log('🔄 Redirecting to login - user:', user?.id, 'session exists:', !!session);
+      navigate('/', { replace: true });
+    } else if (!loading && user && session) {
+      console.log('✅ User authenticated, staying on protected route');
     }
   }, [user, session, loading, navigate]);
 
