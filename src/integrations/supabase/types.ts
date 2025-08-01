@@ -10,7 +10,7 @@ export type Database = {
   // Allows to automatically instanciate createClient with right options
   // instead of createClient<Database, { PostgrestVersion: 'XX' }>(URL, KEY)
   __InternalSupabase: {
-    PostgrestVersion: "12.2.3 (519615d)"
+    PostgrestVersion: "12.2.12 (cd3cf9e)"
   }
   public: {
     Tables: {
@@ -65,6 +65,21 @@ export type Database = {
           id?: string
           metadata?: Json | null
           user_id?: string
+        }
+        Relationships: []
+      }
+      app_config: {
+        Row: {
+          key: string
+          value: string
+        }
+        Insert: {
+          key: string
+          value: string
+        }
+        Update: {
+          key?: string
+          value?: string
         }
         Relationships: []
       }
@@ -305,14 +320,10 @@ export type Database = {
           id: string
           is_verified: boolean | null
           karma_points: number | null
-          last_active: string | null
           last_name: string | null
           location: string | null
           phone: string | null
-          streak_days: number | null
           total_earned: number | null
-          tutorial_completed: boolean | null
-          tutorial_progress: number | null
           updated_at: string | null
         }
         Insert: {
@@ -323,14 +334,10 @@ export type Database = {
           id: string
           is_verified?: boolean | null
           karma_points?: number | null
-          last_active?: string | null
           last_name?: string | null
           location?: string | null
           phone?: string | null
-          streak_days?: number | null
           total_earned?: number | null
-          tutorial_completed?: boolean | null
-          tutorial_progress?: number | null
           updated_at?: string | null
         }
         Update: {
@@ -341,14 +348,10 @@ export type Database = {
           id?: string
           is_verified?: boolean | null
           karma_points?: number | null
-          last_active?: string | null
           last_name?: string | null
           location?: string | null
           phone?: string | null
-          streak_days?: number | null
           total_earned?: number | null
-          tutorial_completed?: boolean | null
-          tutorial_progress?: number | null
           updated_at?: string | null
         }
         Relationships: []
