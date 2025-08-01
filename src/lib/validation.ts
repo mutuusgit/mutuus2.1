@@ -1,103 +1,110 @@
-
+/**
+ * Security-focused validation utilities
+ */
 import { z } from 'zod';
 
-// Password validation schema
-export const passwordSchema = z
-  .string()
-  .min(8, 'Password must be at least 8 characters')
-  .regex(/[A-Z]/, 'Password must contain at least one uppercase letter')
-  .regex(/[a-z]/, 'Password must contain at least one lowercase letter')
-  .regex(/[0-9]/, 'Password must contain at least one number')
-  .regex(/[^A-Za-z0-9]/, 'Password must contain at least one special character');
-
-// Email validation schema
-export const emailSchema = z
-  .string()
-  .email('Please enter a valid email address')
-  .min(1, 'Email is required');
-
-// Auth form validation schemas
-export const signInSchema = z.object({
-  email: emailSchema,
-  password: z.string().min(1, 'Password is required'),
-});
-
-export const signUpSchema = z.object({
-  email: emailSchema,
-  password: passwordSchema,
-  confirmPassword: z.string(),
-  firstName: z.string().min(1, 'First name is required').max(50, 'First name too long'),
-  lastName: z.string().min(1, 'Last name is required').max(50, 'Last name too long'),
-}).refine((data) => data.password === data.confirmPassword, {
-  message: "Passwords don't match",
-  path: ["confirmPassword"],
-});
-
-// Job creation validation schema
-export const jobSchema = z.object({
-  title: z.string().min(1, 'Title is required').max(100, 'Title too long'),
-  description: z.string().max(1000, 'Description too long').optional(),
-  category: z.string().min(1, 'Category is required'),
-  job_type: z.enum(['good_deeds', 'kein_bock']),
-  location: z.string().min(1, 'Location is required').max(100, 'Location too long'),
-  budget: z.number().min(0, 'Budget must be positive').optional(),
-  karma_reward: z.number().min(0, 'Karma reward must be positive').optional(),
-  estimated_duration: z.number().min(1, 'Duration must be at least 1 minute').optional(),
-  due_date: z.string().optional(),
-  requirements: z.array(z.string().max(100)).max(10, 'Too many requirements').optional(),
-});
-
-// Profile update validation schema
-export const profileSchema = z.object({
-  first_name: z.string().min(1, 'First name is required').max(50, 'First name too long'),
-  last_name: z.string().min(1, 'Last name is required').max(50, 'Last name too long'),
-  bio: z.string().max(500, 'Bio too long').optional(),
-  location: z.string().max(100, 'Location too long').optional(),
-  phone: z.string().regex(/^\+?[\d\s-()]+$/, 'Invalid phone number format').optional(),
-});
-
-// Sanitization utility
-export const sanitizeInput = (input: string): string => {
-  return input
-    .replace(/[<>'"&]/g, (char) => {
-      const entities: { [key: string]: string } = {
-        '<': '&lt;',
-        '>': '&gt;',
-        '"': '&quot;',
-        "'": '&#x27;',
-        '&': '&amp;',
-      };
-      return entities[char] || char;
-    })
-    .trim();
+// Email validation with stricter rules
+export const validateEmail = (email: string): boolean => {
+  if (!email || typeof email !== 'string') return false;
+  
+  const emailRegex = /^[a-zA-Z0-9.!#$%&'*+/=?^_`{|}~-]+@[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?(?:\.[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?)*$/;
+  return emailRegex.test(email.trim()) && email.length <= 254;
 };
 
-// Rate limiting utility (client-side)
+// Password validation with strength requirements
+export const validatePassword = (password: string): { isValid: boolean; errors: string[] } => {
+  const errors: string[] = [];
+  
+  if (!password || typeof password !== 'string') {
+    errors.push('Passwort ist erforderlich');
+    return { isValid: false, errors };
+  }
+  
+  if (password.length < 8) {
+    errors.push('Passwort muss mindestens 8 Zeichen lang sein');
+  }
+  
+  if (!/[A-Z]/.test(password)) {
+    errors.push('Passwort muss mindestens einen Großbuchstaben enthalten');
+  }
+  
+  if (!/[a-z]/.test(password)) {
+    errors.push('Passwort muss mindestens einen Kleinbuchstaben enthalten');
+  }
+  
+  if (!/[0-9]/.test(password)) {
+    errors.push('Passwort muss mindestens eine Zahl enthalten');
+  }
+  
+  if (password.length > 128) {
+    errors.push('Passwort darf nicht länger als 128 Zeichen sein');
+  }
+  
+  return { isValid: errors.length === 0, errors };
+};
+
+// Input sanitization
+export const sanitizeInput = (input: string): string => {
+  if (!input || typeof input !== 'string') return '';
+  
+  return input
+    .trim()
+    .replace(/[<>]/g, '') // Remove potential XSS characters
+    .substring(0, 1000); // Limit length
+};
+
+// Name validation (for first/last names)
+export const validateName = (name: string): boolean => {
+  if (!name || typeof name !== 'string') return false;
+  
+  const trimmed = name.trim();
+  return trimmed.length >= 1 && 
+         trimmed.length <= 50 && 
+         /^[a-zA-ZÄÖÜäöüß\s\-']+$/.test(trimmed);
+};
+
+// Rate limiting helper (simple client-side rate limiting)
 export class RateLimiter {
-  private attempts: Map<string, { count: number; resetTime: number }> = new Map();
-
-  isAllowed(key: string, maxAttempts: number = 5, windowMs: number = 15 * 60 * 1000): boolean {
+  private attempts: Map<string, number[]> = new Map();
+  
+  isAllowed(key: string, maxAttempts: number, windowMs: number): boolean {
     const now = Date.now();
-    const record = this.attempts.get(key);
-
-    if (!record || now > record.resetTime) {
-      this.attempts.set(key, { count: 1, resetTime: now + windowMs });
-      return true;
-    }
-
-    if (record.count >= maxAttempts) {
+    const attempts = this.attempts.get(key) || [];
+    
+    // Remove old attempts outside the window
+    const validAttempts = attempts.filter(time => now - time < windowMs);
+    
+    if (validAttempts.length >= maxAttempts) {
       return false;
     }
-
-    record.count++;
+    
+    // Add current attempt
+    validAttempts.push(now);
+    this.attempts.set(key, validAttempts);
+    
     return true;
   }
-
-  getRemainingTime(key: string): number {
-    const record = this.attempts.get(key);
-    if (!record) return 0;
-    return Math.max(0, record.resetTime - Date.now());
+  
+  reset(key: string): void {
+    this.attempts.delete(key);
   }
 }
 
-export const rateLimiter = new RateLimiter();
+// Job validation schema
+export const jobSchema = z.object({
+  title: z.string().min(1, 'Titel ist erforderlich').max(100, 'Titel zu lang'),
+  description: z.string().optional(),
+  category: z.string().min(1, 'Kategorie ist erforderlich'),
+  job_type: z.enum(['good_deeds', 'kein_bock'], {
+    errorMap: () => ({ message: 'Ungültiger Job-Typ' })
+  }),
+  budget: z.number().min(0).optional(),
+  karma_reward: z.number().min(0).optional(),
+  location: z.string().min(1, 'Standort ist erforderlich'),
+  estimated_duration: z.number().min(1).optional(),
+  due_date: z.string().optional(),
+  requirements: z.array(z.string()).optional(),
+});
+
+// Create a global rate limiter instance
+export const authRateLimiter = new RateLimiter();

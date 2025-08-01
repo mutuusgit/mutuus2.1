@@ -162,7 +162,7 @@ const Dashboard = () => {
               <div className="space-y-4">
                 <div className="text-center">
                   <div className="text-4xl font-bold text-orange-400 floating">
-                    {profile?.streak_days || 0}
+                    {0}
                   </div>
                   <div className="text-gray-400">Tage in Folge</div>
                 </div>

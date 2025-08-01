@@ -14,10 +14,6 @@ interface Profile {
   is_verified: boolean;
   karma_points: number;
   total_earned: number;
-  streak_days: number;
-  last_active: string;
-  tutorial_completed: boolean;
-  tutorial_progress: number;
   created_at: string;
   updated_at: string;
 }
