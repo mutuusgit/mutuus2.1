@@ -1,22 +1,25 @@
 
 import React, { useState, useEffect } from 'react';
-import { Plus, Calendar, FolderOpen, Star } from 'lucide-react';
+import { Plus, Calendar, FolderOpen, Star, Award, Target } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { CreateProjectModal } from '@/components/CreateProjectModal';
 import { DashboardHeader } from '@/components/DashboardHeader';
+import { KarmaDisplay } from '@/components/KarmaDisplay';
 import { useAuth } from '@/hooks/useAuth';
 import { useProfile } from '@/hooks/useProfile';
 import { useTutorial } from '@/hooks/useTutorial';
 import { useJobs } from '@/hooks/useJobs';
+import { useKarma } from '@/hooks/useKarma';
 
 const Dashboard = () => {
   const { user } = useAuth();
   const { profile } = useProfile();
   const { getTotalXP, getCompletedLessonsCount } = useTutorial();
   const { jobs, myJobs } = useJobs();
+  const { userStats } = useKarma();
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
 
   const handleCreateProject = (projectData: any) => {
@@ -162,7 +165,7 @@ const Dashboard = () => {
               <div className="space-y-4">
                 <div className="text-center">
                   <div className="text-4xl font-bold text-orange-400 floating">
-                    {0}
+                    {userStats?.streak_days || 0}
                   </div>
                   <div className="text-gray-400">Tage in Folge</div>
                 </div>
@@ -187,6 +190,13 @@ const Dashboard = () => {
                   className="w-full btn-futuristic hover-lift"
                 >
                   Jobs durchsuchen
+                </Button>
+                <Button 
+                  onClick={() => window.location.href = '/missions'} 
+                  variant="outline" 
+                  className="w-full btn-futuristic hover-lift"
+                >
+                  Missionen
                 </Button>
                 <Button 
                   onClick={() => window.location.href = '/map'} 

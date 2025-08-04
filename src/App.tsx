@@ -16,6 +16,7 @@ import Profile from "./pages/Profile";
 import Invite from "./pages/Invite";
 import Wallet from "./pages/Wallet";
 import MyJobs from "./pages/MyJobs";
+import Missions from "./pages/Missions";
 import Ranking from "./pages/Ranking";
 import Tutorial from "./pages/Tutorial";
 import TutorialLesson from "./pages/TutorialLesson";
@@ -66,6 +67,11 @@ const App = () => (
               <Route path="/my-jobs" element={
                 <ProtectedRoute>
                   <MyJobs />
+                </ProtectedRoute>
+              } />
+              <Route path="/missions" element={
+                <ProtectedRoute>
+                  <Missions />
                 </ProtectedRoute>
               } />
               <Route path="/ranking" element={

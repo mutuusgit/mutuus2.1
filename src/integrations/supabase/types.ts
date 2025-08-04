@@ -151,11 +151,14 @@ export type Database = {
           estimated_duration: number | null
           id: string
           images: string[] | null
+          job_level: number | null
           job_type: string
           karma_reward: number | null
           latitude: number | null
           location: string
           longitude: number | null
+          required_karma: number | null
+          required_rank: Database["public"]["Enums"]["user_rank"] | null
           requirements: string[] | null
           status: string | null
           title: string
@@ -172,11 +175,14 @@ export type Database = {
           estimated_duration?: number | null
           id?: string
           images?: string[] | null
+          job_level?: number | null
           job_type: string
           karma_reward?: number | null
           latitude?: number | null
           location: string
           longitude?: number | null
+          required_karma?: number | null
+          required_rank?: Database["public"]["Enums"]["user_rank"] | null
           requirements?: string[] | null
           status?: string | null
           title: string
@@ -193,11 +199,14 @@ export type Database = {
           estimated_duration?: number | null
           id?: string
           images?: string[] | null
+          job_level?: number | null
           job_type?: string
           karma_reward?: number | null
           latitude?: number | null
           location?: string
           longitude?: number | null
+          required_karma?: number | null
+          required_rank?: Database["public"]["Enums"]["user_rank"] | null
           requirements?: string[] | null
           status?: string | null
           title?: string
@@ -210,24 +219,30 @@ export type Database = {
           created_at: string | null
           id: string
           job_id: string | null
+          mission_id: string | null
           points: number
           reason: string
+          transaction_type: string | null
           user_id: string
         }
         Insert: {
           created_at?: string | null
           id?: string
           job_id?: string | null
+          mission_id?: string | null
           points: number
           reason: string
+          transaction_type?: string | null
           user_id: string
         }
         Update: {
           created_at?: string | null
           id?: string
           job_id?: string | null
+          mission_id?: string | null
           points?: number
           reason?: string
+          transaction_type?: string | null
           user_id?: string
         }
         Relationships: [
@@ -236,6 +251,13 @@ export type Database = {
             columns: ["job_id"]
             isOneToOne: false
             referencedRelation: "jobs"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "karma_transactions_mission_id_fkey"
+            columns: ["mission_id"]
+            isOneToOne: false
+            referencedRelation: "missions"
             referencedColumns: ["id"]
           },
         ]
@@ -281,6 +303,45 @@ export type Database = {
           },
         ]
       }
+      missions: {
+        Row: {
+          created_at: string | null
+          description: string | null
+          id: string
+          is_active: boolean | null
+          karma_reward: number
+          max_completions_per_week: number | null
+          mission_type: Database["public"]["Enums"]["mission_type"]
+          photo_required: boolean | null
+          title: string
+          updated_at: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          description?: string | null
+          id?: string
+          is_active?: boolean | null
+          karma_reward?: number
+          max_completions_per_week?: number | null
+          mission_type?: Database["public"]["Enums"]["mission_type"]
+          photo_required?: boolean | null
+          title: string
+          updated_at?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          description?: string | null
+          id?: string
+          is_active?: boolean | null
+          karma_reward?: number
+          max_completions_per_week?: number | null
+          mission_type?: Database["public"]["Enums"]["mission_type"]
+          photo_required?: boolean | null
+          title?: string
+          updated_at?: string | null
+        }
+        Relationships: []
+      }
       notifications: {
         Row: {
           created_at: string | null
@@ -315,42 +376,57 @@ export type Database = {
         Row: {
           avatar_url: string | null
           bio: string | null
+          cash_points: number | null
           created_at: string | null
           first_name: string | null
+          good_deeds_completed: number | null
           id: string
           is_verified: boolean | null
           karma_points: number | null
+          last_active: string | null
           last_name: string | null
           location: string | null
           phone: string | null
+          rank: Database["public"]["Enums"]["user_rank"] | null
+          streak_days: number | null
           total_earned: number | null
           updated_at: string | null
         }
         Insert: {
           avatar_url?: string | null
           bio?: string | null
+          cash_points?: number | null
           created_at?: string | null
           first_name?: string | null
+          good_deeds_completed?: number | null
           id: string
           is_verified?: boolean | null
           karma_points?: number | null
+          last_active?: string | null
           last_name?: string | null
           location?: string | null
           phone?: string | null
+          rank?: Database["public"]["Enums"]["user_rank"] | null
+          streak_days?: number | null
           total_earned?: number | null
           updated_at?: string | null
         }
         Update: {
           avatar_url?: string | null
           bio?: string | null
+          cash_points?: number | null
           created_at?: string | null
           first_name?: string | null
+          good_deeds_completed?: number | null
           id?: string
           is_verified?: boolean | null
           karma_points?: number | null
+          last_active?: string | null
           last_name?: string | null
           location?: string | null
           phone?: string | null
+          rank?: Database["public"]["Enums"]["user_rank"] | null
+          streak_days?: number | null
           total_earned?: number | null
           updated_at?: string | null
         }
@@ -527,6 +603,44 @@ export type Database = {
           },
         ]
       }
+      user_missions: {
+        Row: {
+          completed_at: string | null
+          id: string
+          karma_awarded: number | null
+          mission_id: string
+          photo_url: string | null
+          user_id: string
+          verification_status: string | null
+        }
+        Insert: {
+          completed_at?: string | null
+          id?: string
+          karma_awarded?: number | null
+          mission_id: string
+          photo_url?: string | null
+          user_id: string
+          verification_status?: string | null
+        }
+        Update: {
+          completed_at?: string | null
+          id?: string
+          karma_awarded?: number | null
+          mission_id?: string
+          photo_url?: string | null
+          user_id?: string
+          verification_status?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "user_missions_mission_id_fkey"
+            columns: ["mission_id"]
+            isOneToOne: false
+            referencedRelation: "missions"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       user_settings: {
         Row: {
           created_at: string | null
@@ -565,9 +679,32 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      award_karma: {
+        Args: {
+          user_id: string
+          points: number
+          reason: string
+          job_id?: string
+          mission_id?: string
+          transaction_type?: string
+        }
+        Returns: boolean
+      }
       calculate_user_level: {
         Args: { user_id: string }
         Returns: number
+      }
+      calculate_user_rank: {
+        Args: { user_id: string }
+        Returns: Database["public"]["Enums"]["user_rank"]
+      }
+      can_access_job: {
+        Args: { user_id: string; job_id: string }
+        Returns: boolean
+      }
+      complete_mission: {
+        Args: { user_id: string; mission_id: string; photo_url?: string }
+        Returns: Json
       }
       create_job_with_error_handling: {
         Args: {
@@ -662,7 +799,13 @@ export type Database = {
       }
     }
     Enums: {
-      [_ in never]: never
+      mission_type: "good_deed" | "social_challenge" | "tutorial" | "referral"
+      user_rank:
+        | "starter"
+        | "community"
+        | "erfahren"
+        | "vertrauensperson"
+        | "vorbild"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -789,6 +932,15 @@ export type CompositeTypes<
 
 export const Constants = {
   public: {
-    Enums: {},
+    Enums: {
+      mission_type: ["good_deed", "social_challenge", "tutorial", "referral"],
+      user_rank: [
+        "starter",
+        "community",
+        "erfahren",
+        "vertrauensperson",
+        "vorbild",
+      ],
+    },
   },
 } as const

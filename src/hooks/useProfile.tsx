@@ -14,6 +14,11 @@ interface Profile {
   is_verified: boolean;
   karma_points: number;
   total_earned: number;
+  cash_points: number;
+  rank: 'starter' | 'community' | 'erfahren' | 'vertrauensperson' | 'vorbild';
+  good_deeds_completed: number;
+  streak_days: number;
+  last_active: string;
   created_at: string;
   updated_at: string;
 }
