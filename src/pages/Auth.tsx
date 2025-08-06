@@ -27,6 +27,16 @@ const Auth = () => {
   const [errors, setErrors] = useState<Record<string, string>>({});
 
   useEffect(() => {
+    // Handle hash fragments for email verification redirects
+    const hash = window.location.hash;
+    if (hash === '#signin') {
+      setActiveTab('signin');
+      // Clear the hash
+      window.history.replaceState(null, '', window.location.pathname);
+    }
+  }, []);
+
+  useEffect(() => {
     console.log('👤 Auth page - loading:', loading, 'user:', user?.id);
     
     if (user && !loading) {

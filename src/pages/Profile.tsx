@@ -1,6 +1,7 @@
 
 import React, { useState } from 'react';
-import { User, Star, MapPin, Phone, Mail, Edit, Trophy, Zap, Euro, Heart, Camera, Shield, CreditCard, CheckCircle, AlertCircle } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
+import { User, Star, MapPin, Phone, Mail, Edit, Trophy, Zap, Euro, Heart, Camera, Shield, CreditCard, CheckCircle, AlertCircle, LogOut } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
@@ -8,8 +9,11 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { DashboardHeader } from '@/components/DashboardHeader';
+import { useAuth } from '@/hooks/useAuth';
 
 const Profile = () => {
+  const navigate = useNavigate();
+  const { signOut } = useAuth();
   const [isEditing, setIsEditing] = useState(false);
   const [profileData, setProfileData] = useState({
     firstName: 'Max',
@@ -109,6 +113,15 @@ const Profile = () => {
     // Hier würde die echte Bank-Verifizierung stattfinden
     console.log('Bank-Verifizierung gestartet für:', verificationData.bankAccount);
     setVerificationData(prev => ({ ...prev, bankAccountVerified: true }));
+  };
+
+  const handleLogout = async () => {
+    try {
+      await signOut();
+      navigate('/', { replace: true });
+    } catch (error) {
+      console.error('Logout error:', error);
+    }
   };
 
   return (
@@ -213,14 +226,24 @@ const Profile = () => {
                       <span className="text-sm">{profileData.location}</span>
                     </div>
                     <p className="text-gray-400 text-sm">{profileData.bio}</p>
-                    <Button 
-                      onClick={() => setIsEditing(true)}
-                      variant="outline"
-                      className="w-full border-gray-600 text-gray-300 hover:bg-gray-700"
-                    >
-                      <Edit className="w-4 h-4 mr-2" />
-                      Bearbeiten
-                    </Button>
+                    <div className="space-y-2">
+                      <Button 
+                        onClick={() => setIsEditing(true)}
+                        variant="outline"
+                        className="w-full border-gray-600 text-gray-300 hover:bg-gray-700"
+                      >
+                        <Edit className="w-4 h-4 mr-2" />
+                        Bearbeiten
+                      </Button>
+                      <Button 
+                        onClick={handleLogout}
+                        variant="outline"
+                        className="w-full border-red-600 text-red-400 hover:bg-red-900/20 hover:border-red-500"
+                      >
+                        <LogOut className="w-4 h-4 mr-2" />
+                        Abmelden
+                      </Button>
+                    </div>
                   </div>
                 )}
               </CardContent>

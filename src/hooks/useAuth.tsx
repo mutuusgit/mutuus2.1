@@ -24,24 +24,26 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   useEffect(() => {
     let mounted = true;
-
-    // Set up auth state listener FIRST
+    
+    // Set up auth state listener
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
-      async (event, session) => {
+      (event, session) => {
         console.log('🔐 Auth state changed:', event, session?.user?.email || 'No user');
 
         if (!mounted) return;
 
-        setSession(session);
-        setUser(session?.user ?? null);
-
-        if (event === 'SIGNED_IN' && session?.user) {
-          console.log('✅ User signed in:', session.user.email);
-
-          // Defer profile creation to avoid blocking the auth flow
-          setTimeout(async () => {
-            try {
-              const { error: profileError } = await supabase
+        // Only update state for significant events to prevent loops
+        if (event === 'SIGNED_IN' || event === 'SIGNED_OUT' || event === 'TOKEN_REFRESHED') {
+          setSession(session);
+          setUser(session?.user ?? null);
+          
+          // Create/update profile only on sign in, not on token refresh
+          if (event === 'SIGNED_IN' && session?.user) {
+            console.log('✅ User signed in:', session.user.email);
+            
+            // Use setTimeout to prevent blocking auth flow
+            setTimeout(() => {
+              supabase
                 .from('profiles')
                 .upsert({
                   id: session.user.id,
@@ -51,49 +53,36 @@ export function AuthProvider({ children }: { children: ReactNode }) {
                   updated_at: new Date().toISOString(),
                 }, {
                   onConflict: 'id'
+                })
+                .then(({ error }) => {
+                  if (error) {
+                    console.error('Profile upsert error:', error);
+                  }
                 });
+            }, 100);
+          }
 
-              if (profileError) {
-                console.error('Error creating/updating profile:', profileError);
-              }
-            } catch (error) {
-              console.error('Profile creation error:', error);
-            }
-          }, 0);
-        }
-
-        if (event === 'SIGNED_OUT') {
-          console.log('🚪 User signed out');
+          if (event === 'SIGNED_OUT') {
+            console.log('🚪 User signed out');
+          }
         }
 
         setLoading(false);
       }
     );
 
-    // THEN check for existing session
-    const initializeAuth = async () => {
-      try {
-        const { data: { session }, error } = await supabase.auth.getSession();
-        
+    // Check for existing session
+    supabase.auth.getSession().then(({ data: { session }, error }) => {
+      if (mounted) {
+        console.log('🔄 Initial session check:', session?.user?.email || 'No session');
         if (error) {
-          console.error('Error getting session:', error);
+          console.error('Session check error:', error);
         }
-        
-        if (mounted) {
-          console.log('🔄 Initial session check:', session?.user?.email || 'No session');
-          setSession(session);
-          setUser(session?.user ?? null);
-          setLoading(false);
-        }
-      } catch (error) {
-        console.error('Session initialization error:', error);
-        if (mounted) {
-          setLoading(false);
-        }
+        setSession(session);
+        setUser(session?.user ?? null);
+        setLoading(false);
       }
-    };
-
-    initializeAuth();
+    });
 
     return () => {
       mounted = false;
@@ -166,7 +155,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         password,
         options: {
           data: userData,
-          emailRedirectTo: `${window.location.origin}/`,
+          emailRedirectTo: `${window.location.origin}/#signin`,
         },
       });
       
@@ -226,7 +215,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       }
       
       const { error } = await supabase.auth.resetPasswordForEmail(email, {
-        redirectTo: `${window.location.origin}/`,
+        redirectTo: `${window.location.origin}/#signin`,
       });
       if (error) throw error;
       toast({
