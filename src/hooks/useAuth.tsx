@@ -22,55 +22,84 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [loading, setLoading] = useState(true);
   const { toast } = useToast();
 
- useEffect(() => {
-  let mounted = true;
+  useEffect(() => {
+    let mounted = true;
 
-  const { data: { subscription } } = supabase.auth.onAuthStateChange(
-    async (event, session) => {
-      console.log('🔐 Auth state changed:', event, session?.user?.email || 'No user');
+    // Set up auth state listener FIRST
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(
+      async (event, session) => {
+        console.log('🔐 Auth state changed:', event, session?.user?.email || 'No user');
 
-      if (!mounted) return;
+        if (!mounted) return;
 
-      setSession(session);
-      setUser(session?.user ?? null);
+        setSession(session);
+        setUser(session?.user ?? null);
 
-      if (event === 'SIGNED_IN' && session?.user) {
-        console.log('✅ User signed in:', session.user.email);
+        if (event === 'SIGNED_IN' && session?.user) {
+          console.log('✅ User signed in:', session.user.email);
 
-        try {
-          const { error: profileError } = await supabase
-            .from('profiles')
-            .upsert({
-              id: session.user.id,
-              first_name: session.user.user_metadata?.first_name || null,
-              last_name: session.user.user_metadata?.last_name || null,
-              avatar_url: session.user.user_metadata?.avatar_url || null,
-              updated_at: new Date().toISOString(),
-            }, {
-              onConflict: 'id'
-            });
+          // Defer profile creation to avoid blocking the auth flow
+          setTimeout(async () => {
+            try {
+              const { error: profileError } = await supabase
+                .from('profiles')
+                .upsert({
+                  id: session.user.id,
+                  first_name: session.user.user_metadata?.first_name || null,
+                  last_name: session.user.user_metadata?.last_name || null,
+                  avatar_url: session.user.user_metadata?.avatar_url || null,
+                  updated_at: new Date().toISOString(),
+                }, {
+                  onConflict: 'id'
+                });
 
-          if (profileError) {
-            console.error('Error creating/updating profile:', profileError);
-          }
-        } catch (error) {
-          console.error('Profile creation error:', error);
+              if (profileError) {
+                console.error('Error creating/updating profile:', profileError);
+              }
+            } catch (error) {
+              console.error('Profile creation error:', error);
+            }
+          }, 0);
+        }
+
+        if (event === 'SIGNED_OUT') {
+          console.log('🚪 User signed out');
+        }
+
+        setLoading(false);
+      }
+    );
+
+    // THEN check for existing session
+    const initializeAuth = async () => {
+      try {
+        const { data: { session }, error } = await supabase.auth.getSession();
+        
+        if (error) {
+          console.error('Error getting session:', error);
+        }
+        
+        if (mounted) {
+          console.log('🔄 Initial session check:', session?.user?.email || 'No session');
+          setSession(session);
+          setUser(session?.user ?? null);
+          setLoading(false);
+        }
+      } catch (error) {
+        console.error('Session initialization error:', error);
+        if (mounted) {
+          setLoading(false);
         }
       }
+    };
 
-      if (event === 'SIGNED_OUT') {
-        console.log('🚪 User signed out');
-      }
+    initializeAuth();
 
-      setLoading(false);
-    }
-  );
-
-  return () => {
-    mounted = false;
-    subscription.unsubscribe();
-  };
-}, []);
+    return () => {
+      mounted = false;
+      subscription.unsubscribe();
+    };
+  }, []);
 
 
   const signIn = async (email: string, password: string) => {
